@@ -76,7 +76,7 @@ class Environment:
             dw_day = np.zeros(self.N_SYLL)
             self.model.bg_influence = True
             if day >= self.DAYS-1: 
-                self.model.bg_influence = True # BG lesion on the last day
+                self.model.bg_influence = False # BG lesion on the last day
             sum_RPE = 0
             for iter in range(self.TRIALS):
                 for syll in range(self.N_SYLL):
@@ -125,6 +125,7 @@ class Environment:
                 for syll in range(self.N_SYLL):
                     if WEIGHT_JUMP == 0:
                         ''' input daily sum, output scaling factor for potentiation'''
+                        # OLD WAY OF DOING THINGS
                         # calculating potentiation 
                         d = dw_day[syll]*100 # scaling up to be comparable
                         annealing_mid_final = ANNEALING_MID*np.exp(-ANNEALING_MID_DECAY*day/60)
@@ -140,6 +141,7 @@ class Environment:
                         self.pot_array[day, syll] = 1-p
                         self.dw_day_array[day, syll] = d
                     elif WEIGHT_JUMP == 1:
+                        # NEW WAY OF DOING THINGS
                         self.dw_day_array[day, syll] = self.RPE_SUM[day, iter, syll]
                         # an alternate way of jumping! 
                         rpe_sum_end_of_day = self.RPE_SUM[day, iter, syll]

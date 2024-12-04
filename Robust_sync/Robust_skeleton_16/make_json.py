@@ -53,7 +53,7 @@ for directory in neighboring_directories:
             print(f"Removed JSON file: {full_path}")
 
 # Define parameter values
-BG_NOISE_values = [0.05, 0.1, 0.2, 0.3, 0.5]
+BG_NOISE_values = [0.05, 0.75, 0.1, 0.2]
 RA_NOISE_values = [0, 0.01, 0.02, 0.05, 0.1]
 LEARNING_RATE_RL_values = [0.01, 0.05, 0.1, 0.2, 0.4]
 LEARNING_RATE_HL_values = [0, 1e-5, 2e-5, 5e-5, 1e-4]
@@ -96,6 +96,7 @@ parameter_names = {
 
 filename = "params.json"
 for directory in neighboring_directories:
+    print(f"Directory: {directory}")    
     if directory in parameter_names:
         parameter_name = directory
         parameter_values = parameter_names[directory]
