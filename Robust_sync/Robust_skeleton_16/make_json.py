@@ -14,7 +14,8 @@ def find_neighboring_directories():
     for entry in all_entries:
         full_path = os.path.join(current_dir, entry)  # Get full path for entry
         if os.path.isdir(full_path):  # Check if it's a directory
-            directories.append(entry)
+            if not entry.startswith("__pycache__"):  # Skip Python cache directories
+                directories.append(entry)
     return directories
 
 def modify_json(filename, parameter_path, new_value, new_filename="modified_params.json"):
@@ -100,6 +101,8 @@ for directory in neighboring_directories:
     if directory in parameter_names:
         parameter_name = directory
         parameter_values = parameter_names[directory]
+    else:
+        print(f"Skipping directory '{directory}' as it's not in the parameter_names list.")
 
     for value in parameter_values:
         new_filename = f"{directory}/parameters_{value}.json"
