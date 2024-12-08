@@ -10,7 +10,7 @@ from model import NN
 from env import build_and_run
 from functions import find_neighboring_directories
 
-NOS_SEEDS = 10
+NOS_SEEDS = 50
 np.random.seed(2)
 seeds = np.random.randint(0, 1000, NOS_SEEDS)
 seeds.sort()
