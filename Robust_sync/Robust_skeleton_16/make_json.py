@@ -70,7 +70,7 @@ ANNEAING_MID_DECAY_values = [0,0.1,0.3, 0.5]
 BG_SIG_SLOPE_values = [2.5, 3]
 WEIGHT_JUMP_values = [0,1]
 JUMP_MID_values = [0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
-JUMP_SLOPE_values = [1,2,3,4,5]
+JUMP_SLOPE_values = [15,20,50,100]
 
 
 

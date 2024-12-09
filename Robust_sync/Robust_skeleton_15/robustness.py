@@ -14,7 +14,8 @@ NOS_SEEDS = 10
 np.random.seed(3)
 seeds = np.random.randint(0, 1000, NOS_SEEDS)
 seeds.sort()
-wanted_directories = ["WEIGHT_JUMP"]#["ANNEALING", "BG_NOISE", "LEARNING_RATE_HL", "LEARNING_RATE_RL", "RA_NOISE", "N_BG_CLUSTERS", "N_DISTRACTORS", "REWARD_WINDOW", "TARGET_WIDTH"]                                       
+wanted_directories = ["WEIGHT_JUMP","ANNEALING", "BG_NOISE", "LEARNING_RATE_HL", "LEARNING_RATE_RL", "RA_NOISE", "N_BG_CLUSTERS", "N_DISTRACTORS", "REWARD_WINDOW", "TARGET_WIDTH"]     
+print(f"Time remaining: {np.round(6 * len(wanted_directories) * NOS_SEEDS / 60, 2)} minutes")                                  
 neighboring_directories = find_neighboring_directories()
 for directory in neighboring_directories:
     if directory in wanted_directories:
@@ -29,6 +30,20 @@ for directory in neighboring_directories:
         if os.path.isfile(np_path2) and np_file_name2.endswith(".npy"):
             os.remove(np_path2)
             print(f"Deleted NumPy file: {np_path2}")
+
+total_parameters = 0
+for directory in neighboring_directories:
+    if directory in wanted_directories:
+        # load parameters from json file
+        nos_parameters = 0
+        print(f"Seeds: {seeds}")
+        for potential_filename in os.listdir(directory):
+            if potential_filename.startswith("parameters_") and potential_filename.endswith(".json"):
+                total_parameters += 1
+
+print(f"Total number of parameters: {total_parameters}")
+time_remaining = np.round(6 * total_parameters * NOS_SEEDS / 60, 2)
+print(f"Time remaining: {time_remaining} minutes")
 
 for directory in neighboring_directories:
     if directory in wanted_directories:

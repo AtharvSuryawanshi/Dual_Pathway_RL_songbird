@@ -10,11 +10,11 @@ from model import NN
 from env import build_and_run
 from functions import find_neighboring_directories
 
-NOS_SEEDS = 50
-np.random.seed(2)
+NOS_SEEDS = 1
+np.random.seed(0)
 seeds = np.random.randint(0, 1000, NOS_SEEDS)
 seeds.sort()
-wanted_directories = ["BG_NOISE", "LEARNING_RATE_RL", "REWARD_WINDOW"]#["ANNEALING", "BG_NOISE", "LEARNING_RATE_HL", "LEARNING_RATE_RL", "RA_NOISE", "N_BG_CLUSTERS", "N_DISTRACTORS", "REWARD_WINDOW", "TARGET_WIDTH"]                                       
+wanted_directories = ['JUMP_SLOPE'] #["BG_NOISE", "LEARNING_RATE_RL", "REWARD_WINDOW"]#["ANNEALING", "BG_NOISE", "LEARNING_RATE_HL", "LEARNING_RATE_RL", "RA_NOISE", "N_BG_CLUSTERS", "N_DISTRACTORS", "REWARD_WINDOW", "TARGET_WIDTH"]                                       
 neighboring_directories = find_neighboring_directories()
 for directory in neighboring_directories:
     if directory in wanted_directories:
@@ -29,6 +29,20 @@ for directory in neighboring_directories:
         if os.path.isfile(np_path2) and np_file_name2.endswith(".npy"):
             os.remove(np_path2)
             print(f"Deleted NumPy file: {np_path2}")
+
+total_parameters = 0
+for directory in neighboring_directories:
+    if directory in wanted_directories:
+        # load parameters from json file
+        nos_parameters = 0
+        print(f"Seeds: {seeds}")
+        for potential_filename in os.listdir(directory):
+            if potential_filename.startswith("parameters_") and potential_filename.endswith(".json"):
+                total_parameters += 1
+
+print(f"Total number of parameters: {total_parameters}")
+time_remaining = np.round(6 * total_parameters * NOS_SEEDS / 60, 2)
+print(f"Time remaining: {time_remaining} minutes")
 
 for directory in neighboring_directories:
     if directory in wanted_directories:
