@@ -7,7 +7,7 @@
     
     "WEIGHT_JUMP": 1,
     "JUMP_MID": 0.6,
-    "JUMP_SLOPE": 15,
+    "JUMP_SLOPE": 50,
     "ANNEALING": 1,
     "ANNEALING_SLOPE": 4,
     "ANNEALING_MID": 2,
@@ -26,7 +26,7 @@
     "N_DISTRACTORS": 10,
     "TARGET_WIDTH": 0.3,
 
-    "LEARNING_RATE_RL": 0.1,
+    "LEARNING_RATE_RL": 0.2,
     "LEARNING_RATE_HL": 2.5e-5,
 
     "BG_SIG_SLOPE": 2.5,

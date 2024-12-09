@@ -15,7 +15,7 @@
     "balance_factor": 3,
     "BG_influence": 1,
     "HARD_BOUND": 0,
-    "REWARD_WINDOW": 5,
+    "REWARD_WINDOW": 50,
     "BG_NOISE": 0.1,
     "RA_NOISE": 0.0,
     "N_DISTRACTORS": 10,
@@ -24,7 +24,7 @@
     "LEARNING_RATE_HL": 2.5e-05,
     "BG_SIG_SLOPE": 2.5,
     "BG_sig_MID": 0,
-    "RA_SIG_SLOPE": 20,
+    "RA_SIG_SLOPE": 18,
     "RA_sig_MID": 0,
     "N_BG_CLUSTERS": 2
   },

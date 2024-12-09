@@ -10,11 +10,12 @@ from model import NN
 from env import build_and_run
 from functions import find_neighboring_directories
 
-NOS_SEEDS = 1
+NOS_SEEDS = 50
+time_per_iter = 12
 np.random.seed(0)
 seeds = np.random.randint(0, 1000, NOS_SEEDS)
 seeds.sort()
-wanted_directories = ['JUMP_SLOPE'] #["BG_NOISE", "LEARNING_RATE_RL", "REWARD_WINDOW"]#["ANNEALING", "BG_NOISE", "LEARNING_RATE_HL", "LEARNING_RATE_RL", "RA_NOISE", "N_BG_CLUSTERS", "N_DISTRACTORS", "REWARD_WINDOW", "TARGET_WIDTH"]                                       
+wanted_directories = ['LEARNING_RATE_RL'] #["BG_NOISE", "LEARNING_RATE_RL", "REWARD_WINDOW"]#["ANNEALING", "BG_NOISE", "LEARNING_RATE_HL", "LEARNING_RATE_RL", "RA_NOISE", "N_BG_CLUSTERS", "N_DISTRACTORS", "REWARD_WINDOW", "TARGET_WIDTH"]                                       
 neighboring_directories = find_neighboring_directories()
 for directory in neighboring_directories:
     if directory in wanted_directories:
@@ -41,7 +42,7 @@ for directory in neighboring_directories:
                 total_parameters += 1
 
 print(f"Total number of parameters: {total_parameters}")
-time_remaining = np.round(6 * total_parameters * NOS_SEEDS / 60, 2)
+time_remaining = np.round(time_per_iter * total_parameters * NOS_SEEDS / 60, 2)
 print(f"Time remaining: {time_remaining} minutes")
 
 for directory in neighboring_directories:

@@ -5,7 +5,7 @@
     "N_SYLL": 1,
     "WEIGHT_JUMP": 1,
     "JUMP_MID": 0.6,
-    "JUMP_SLOPE": 15,
+    "JUMP_SLOPE": 50,
     "ANNEALING": 1,
     "ANNEALING_SLOPE": 2,
     "ANNEALING_MID": 2,
