@@ -23,6 +23,7 @@
     "BG_NOISE": 0.1,
     "RA_NOISE": 0.00,
 
+    "LANDSCAPE": 0,
     "N_DISTRACTORS": 10,
     "TARGET_WIDTH": 0.3,
 

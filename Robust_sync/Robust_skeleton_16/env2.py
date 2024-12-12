@@ -17,32 +17,50 @@ class Environment:
         self.bg_size = parameters['const']['BG_SIZE']
         self.ra_size = parameters['const']['RA_SIZE']
         self.mc_size = parameters['const']['MC_SIZE']
+        self.LANDSCAPE = parameters['params']['LANDSCAPE']
         self.n_distractors = parameters['params']['N_DISTRACTORS']
         self.target_width = parameters['params']['TARGET_WIDTH']
         self.seed = seed
+        self.limit = 1.5
         # np.random.seed(seed)
         self.model = NN(parameters, seed)
         # landscape parameters
-        self.centers = np.random.uniform(-0.9, 0.9, (self.N_SYLL, 2))
-        self.heights = np.random.uniform(0.2, 0.7, (self.N_SYLL, self.n_distractors))
-        self.means = np.random.uniform(-1, 1, (self.N_SYLL,self.n_distractors, 2))
-        self.spreads = np.random.uniform(0.1, 0.6, (self.N_SYLL, self.n_distractors))
+        if self.LANDSCAPE == 0: # ARTIFICAL LANDSCAPE
+            self.centers = np.random.uniform(-0.9, 0.9, (self.N_SYLL, 2))
+            self.heights = np.random.uniform(0.2, 0.7, (self.N_SYLL, self.n_distractors))
+            self.means = np.random.uniform(-1, 1, (self.N_SYLL,self.n_distractors, 2))
+            self.spreads = np.random.uniform(0.1, 0.6, (self.N_SYLL, self.n_distractors))
+        else: # SYRINX LANDSCAPE
+            if self.N_SYLL > 4:
+                raise ValueError('Only 4 syllables are available in the syrinx landscape')
+            self.syrinx_contours = []
+            self.syrinx_targets = []
+            for syll in range(self.N_SYLL):
+                base = np.load(f"contours/Syll{syll+1}.npy")
+                Z, target = make_contour(base)
+                self.syrinx_contours.append(Z)
+                self.syrinx_targets.append(target)
+                self.centers = np.array(self.syrinx_targets)
         # data storage
         self.rewards = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
         self.actions = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL, self.mc_size))
         self.hvc_bg_array = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
+        self.hvc_bg_array_all = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL, self.hvc_size, self.bg_size))   
         self.bg_out = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
         self.hvc_ra_array = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
+        self.hvc_ra_array_all = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL, self.hvc_size, self.ra_size)) 
         self.ra_out = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
+        self.ra_all = np.zeros((self.DAYS, self.TRIALS,self.N_SYLL, self.ra_size))
+        self.bg_all = np.zeros((self.DAYS, self.TRIALS,self.N_SYLL, self.bg_size))
         self.dw_day_array = np.zeros((self.DAYS, self.N_SYLL))
         self.pot_array = np.zeros((self.DAYS, self.N_SYLL))
         self.RPE = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL)) 
         self.RPE_SUM = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
         
-    def get_reward(self, coordinates, syll):
-        # landscape creation and reward calculation
+        
+    def artificial_landscape(self, coordinates, syll):
         center = self.centers[syll, :]
-        reward_scape = gaussian(coordinates, 1, center, self.target_width)
+        reward_scape = gaussian(coordinates, 1, center, 0.3)
         if self.n_distractors == 0:
             return reward_scape
         hills = []
@@ -53,7 +71,25 @@ class Environment:
             spread = self.spreads[syll, i]
             hills.append(gaussian(coordinates, height, mean, spread))
         return np.maximum.reduce(hills)
-     
+    
+    def syrinx_landscape(self, coordinates, syll, n = 256):  
+        contour = self.syrinx_contours[syll]
+        target_pos = self.syrinx_targets[syll]
+        x, y = coordinates[0], coordinates[1]
+        x = max(min(x, 0.999), -1)
+        y = max(min(y, 0.999), -1)
+        x = int((x + 1) / 2 * n)
+        y = int((y + 1) / 2 * n)
+        return contour[x, y]
+
+        
+    def get_reward(self, coordinates, syll):
+        # landscape creation and reward calculation
+        if self.LANDSCAPE == False:
+            return self.artificial_landscape(coordinates, syll)
+        else:
+            return self.syrinx_landscape(coordinates, syll)
+             
     def run(self, parameters, annealing = False):
         # modes 
         self.annealing = annealing
@@ -119,7 +155,12 @@ class Environment:
                     self.hvc_bg_array[day, iter, syll] = self.model.W_hvc_bg[syll,1]
                     self.bg_out[day, iter, syll] = bg[1]
                     self.hvc_ra_array[day, iter, syll] = self.model.W_hvc_ra[syll,1]
+                    self.hvc_ra_array_all[day, iter, syll, :] = self.model.W_hvc_ra[syll,:]
                     self.ra_out[day, iter, syll] = ra[0]
+                    self.ra_all[day, iter, syll, :] = ra
+                    self.hvc_bg_array_all[day, iter, syll, :] = self.model.W_hvc_bg[syll,:]
+                    self.bg_all[day, iter, syll, :] = bg
+
             # Annealing
             if self.annealing:
                 for syll in range(self.N_SYLL):
@@ -151,11 +192,10 @@ class Environment:
                         self.model.W_hvc_bg += dw_night
                         self.model.W_hvc_bg = (self.model.W_hvc_bg + 1) % 2 -1 # bound between -1 and 1 in cyclical manner
                         self.pot_array[day, syll] = potentiation_factor
-                        
+
     def save_trajectory(self, syll):
         fig, axs = plt.subplots(figsize=(10, 9))
         # generate grid 
-        self.limit = 1.5
         x, y = np.linspace(-self.limit,self.limit, 50), np.linspace(-self.limit, self.limit, 50)
         X, Y = np.meshgrid(x, y)
         Z = self.get_reward([X, Y], syll)
@@ -258,6 +298,45 @@ class Environment:
             plt.show()  
             # plt.savefig(os.path.join(save_dir, f"dw_day_{self.seed}_{syll}.png"))   
             # plt.close()
+
+def plot_trajectory(obj, syll):
+    fig, axs = plt.subplots(figsize=(10, 9))
+    cmap = LinearSegmentedColormap.from_list('white_to_black', ['white', 'black'])
+    if obj.LANDSCAPE == 0: # artificial landscape
+        x_traj, y_traj = zip(*obj.actions[:,:, syll,:].reshape(-1, 2))
+        limit = 1.5
+        x, y = np.linspace(-limit, limit, 50), np.linspace(-limit, limit, 50)
+        X, Y = np.meshgrid(x, y)
+        Z = obj.get_reward([X, Y], syll)
+        contour = axs.contourf(X, Y, Z, levels=10, cmap=cmap)
+        fig.colorbar(contour, ax=axs, label='Reward')
+        # # plot trajectory
+        # axs.plot(x_traj[::10], y_traj[::10], 'yellow', label='Agent Trajectory', alpha = 0.1, marker = ".", linewidth = 0.1, markersize = 0.99) # Plot every 20th point for efficiency
+        # axs.scatter(x_traj[0], y_traj[0], s=100, c='blue', label='Starting Point', marker = 'x')  # type: ignore # Plot first point as red circle
+        # axs.scatter(x_traj[-1001], y_traj[-1001], s=100, c='pink', marker='x', label='Before Lesion Ending Point')
+        # axs.scatter(x_traj[-5:], y_traj[-5:], s=100, c='r', marker='x', label='After Leison Point') # type: ignore
+        axs.scatter(obj.centers[syll, 0], obj.centers[syll, 1], s=100, c='green', marker='x', label='target')  # type: ignore
+    else: 
+        Z = obj.syrinx_contours[syll]
+        target_pos = obj.syrinx_targets[syll]
+        cs = plt.contourf(Z, cmap=cmap, extent=[-1, 1, -1, 1])
+        fig.colorbar(cs, ax=axs, label='Reward')
+        axs.scatter(target_pos[0], target_pos[1], s=100, c='green', marker='x', label='target')  # type: ignore
+        # plot trajectory
+    x_traj, y_traj = zip(*obj.actions[:,:, syll,:].reshape(-1, 2))
+    axs.plot(x_traj[::10], y_traj[::10], 'yellow', label='Agent Trajectory', alpha = 0.5, linewidth = 0.1, marker='.', markersize = 0.99) # Plot every 20th point for efficiency
+    axs.scatter(x_traj[0], y_traj[0], s=100, c='blue', label='Starting Point', marker = 'x')  # type: ignore # Plot first point as red circle
+    axs.scatter(x_traj[-1001], y_traj[-1001], s=200, c='pink', marker='o', label='Before Lesion Ending Point')
+    axs.scatter(x_traj[-1], y_traj[-1], s=200, c='r', marker='x', label='Ending Point') # type: ignore
+    
+
+    # labels
+    axs.set_title(f'Contour plot of reward function SEED:{RANDOM_SEED} syllable: {syll}', fontsize = 15)
+    axs.set_ylabel(r'$P_{\alpha}$')
+    axs.set_xlabel(r'$P_{\beta}$')
+    axs.legend()
+    plt.tight_layout()
+    plt.show()
             
 def build_and_run(seed, annealing, plot, parameters, NN):
     N_SYLL = parameters['params']['N_SYLL']
