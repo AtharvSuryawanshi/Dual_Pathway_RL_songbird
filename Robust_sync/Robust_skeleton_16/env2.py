@@ -267,7 +267,7 @@ class Environment:
         JUMP_MID = parameters['params']['JUMP_MID']
         if self.annealing:
             
-            fig, axs = plt.subplots(3,1,figsize=(7, 14))
+            fig, axs = plt.subplots(3,1,figsize=(7, 7))
             expanded_dw_day_array = np.zeros((self.DAYS*self.TRIALS, self.N_SYLL)) 
             expanded_pot_array = np.zeros((self.DAYS*self.TRIALS, self.N_SYLL))
             # Expand dw_day_array and pot_array to match the size of rewards
