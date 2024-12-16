@@ -10,12 +10,12 @@ from model import NN
 from env import build_and_run
 from functions import find_neighboring_directories
 
-NOS_SEEDS = 50
+NOS_SEEDS = 100
 time_per_iter = 12
-np.random.seed(0)
+np.random.seed(1)
 seeds = np.random.randint(0, 1000, NOS_SEEDS)
 seeds.sort()
-wanted_directories = ['LEARNING_RATE_RL'] #["BG_NOISE", "LEARNING_RATE_RL", "REWARD_WINDOW"]#["ANNEALING", "BG_NOISE", "LEARNING_RATE_HL", "LEARNING_RATE_RL", "RA_NOISE", "N_BG_CLUSTERS", "N_DISTRACTORS", "REWARD_WINDOW", "TARGET_WIDTH"]                                       
+wanted_directories = ['REWARD_WINDOW'] #["BG_NOISE", "LEARNING_RATE_RL", "REWARD_WINDOW"]#["ANNEALING", "BG_NOISE", "LEARNING_RATE_HL", "LEARNING_RATE_RL", "RA_NOISE", "N_BG_CLUSTERS", "N_DISTRACTORS", "REWARD_WINDOW", "TARGET_WIDTH"]                                       
 neighboring_directories = find_neighboring_directories()
 for directory in neighboring_directories:
     if directory in wanted_directories:

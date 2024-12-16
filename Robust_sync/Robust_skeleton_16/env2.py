@@ -21,7 +21,10 @@ class Environment:
         self.n_distractors = parameters['params']['N_DISTRACTORS']
         self.target_width = parameters['params']['TARGET_WIDTH']
         self.seed = seed
-        self.limit = 1.5
+        if self.LANDSCAPE == 0:
+            self.limit = 1.5
+        else:
+            self.limit = 1
         # np.random.seed(seed)
         self.model = NN(parameters, seed)
         # landscape parameters
@@ -304,7 +307,8 @@ def plot_trajectory(obj, syll):
     cmap = LinearSegmentedColormap.from_list('white_to_black', ['white', 'black'])
     if obj.LANDSCAPE == 0: # artificial landscape
         x_traj, y_traj = zip(*obj.actions[:,:, syll,:].reshape(-1, 2))
-        limit = 1.5
+        limit = obj.limit
+        print(limit)
         x, y = np.linspace(-limit, limit, 50), np.linspace(-limit, limit, 50)
         X, Y = np.meshgrid(x, y)
         Z = obj.get_reward([X, Y], syll)
@@ -331,7 +335,7 @@ def plot_trajectory(obj, syll):
     
 
     # labels
-    axs.set_title(f'Contour plot of reward function SEED:{RANDOM_SEED} syllable: {syll}', fontsize = 15)
+    axs.set_title(f'Contour plot of reward function SEED:{RANDOM_SEED} syllable: {syll}', fontsize = 15) # type: ignore 
     axs.set_ylabel(r'$P_{\alpha}$')
     axs.set_xlabel(r'$P_{\beta}$')
     axs.legend()

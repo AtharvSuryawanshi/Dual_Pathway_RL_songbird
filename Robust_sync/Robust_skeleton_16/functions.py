@@ -1,5 +1,6 @@
 import numpy as np
 import os
+from scipy.interpolate import interp2d
 
 # save plots in a folder
 save_dir = "plots"
@@ -67,6 +68,61 @@ def find_neighboring_directories():
         if entry != "__pycache__":  # Skip the cache directory
             full_path = os.path.join(current_dir, entry)  # Get full path for entry
             if os.path.isdir(full_path):  # Check if it's a directory
-                if entry != "__pycache__":
+                if entry != "__pycache__" and entry != "plots": 
                     directories.append(entry)
     return directories
+
+from scipy.interpolate import RegularGridInterpolator
+
+def make_contour(Z, n=256):
+    Z = Z / Z.max()
+
+    # Transform exponentially
+    Z = np.power(1000, Z)
+    Z = Z / Z.max()
+
+    # Interpolate
+    x = np.linspace(0, 1., Z.shape[0])
+    y = np.linspace(0, .2, Z.shape[1])
+
+    x2 = np.linspace(0, 1., n)
+    y2 = np.linspace(0, .2, n)
+    
+    interpolating_function = RegularGridInterpolator((x, y), Z, method='cubic')
+    x2_grid, y2_grid = np.meshgrid(x2, y2)
+    points = np.array([x2_grid.flatten(), y2_grid.flatten()]).T
+    Z = interpolating_function(points).reshape(n, n)
+
+    Z = (Z - np.min(Z)) / (np.max(Z) - np.min(Z)) # type: ignore
+    Z = Z / Z.max()
+
+    targetZpos = np.argwhere(Z == 1)[0]
+    targetpos = np.zeros((2))
+    targetpos[0] = (targetZpos[1] / Z.shape[1]) * 2 - 1
+    targetpos[1] = (targetZpos[0] / Z.shape[0]) * 2 - 1
+    return Z, targetpos
+
+# def make_contour(Z, n = 256):
+#     Z = Z / Z.max()
+
+#     # Transform exponentially
+#     Z = np.power(1000, Z)
+#     Z = Z / Z.max()
+
+#     # Interpolate
+#     x = np.linspace(0, 1., Z.shape[0])
+#     y = np.linspace(0, .2, Z.shape[1])
+
+#     x2 = np.linspace(0, 1., n)
+#     y2 = np.linspace(0, .2, n)
+#     f = interp2d(x, y, Z, kind='cubic')
+#     Z = f(x2, y2) 
+
+#     Z = (Z-np.min(Z))/(np.max(Z)-np.min(Z))
+#     Z = Z / Z.max()
+
+#     targetZpos = np.argwhere(Z==1)[0]
+#     targetpos = np.zeros((2))
+#     targetpos[0] = (targetZpos[1] / Z.shape[1]) * 2 - 1
+#     targetpos[1] = (targetZpos[0] / Z.shape[0]) * 2 - 1
+#     return Z, targetpos
