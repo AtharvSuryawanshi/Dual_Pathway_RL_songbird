@@ -1,0 +1,17 @@
+{
+  "params": {
+    "TRIALS": 1000,
+    "DAYS": 61,
+    "N_SYLL": 1,
+    "NOISE": 0.2,
+    "TEMPERATURE": 0.1,
+    "REWARD_WINDOW": 10,
+    "N_DISTRACTORS": 10,
+    "TARGET_WIDTH": 0.3,
+    "LEARNING_RATE_RL": 0.1,
+    "LEARNING_RATE_HL": 2e-05
+  },
+  "const": {
+    "OUT_SIZE": 2
+  }
+}
