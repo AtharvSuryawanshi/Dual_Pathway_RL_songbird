@@ -182,7 +182,7 @@ class Environment:
         for i in range(1,6):
             axs[i].set_xticks(range(0, self.DAYS*self.TRIALS, 10*self.TRIALS), range(0, self.DAYS, 10))
         fig.suptitle(f'Results SEED:{self.seed} syllable: {syll}', fontsize=20)
-        plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+        plt.tight_layout(rect=[0, 0.03, 1, 0.95]) # type: ignore    
         # Create the "plots" directory if it doesn't exist
         os.makedirs(save_dir, exist_ok = True)
         # Save the plot
@@ -217,7 +217,7 @@ class Environment:
             plt.plot(lined, color='violet')
         plt.plot(np.convolve(self.rewards.mean(axis = 2).reshape(self.DAYS*self.TRIALS),np.ones((100,))/100, mode='same'), color='black', label='Mean')
         plt.xlabel('Days')
-        plt.xticks(range(0, self.DAYS*self.TRIALS, 10*self.TRIALS), range(0, self.DAYS, 10))
+        plt.xticks(range(0, self.DAYS*self.TRIALS, 10*self.TRIALS), range(0, self.DAYS, 10)) # type: ignore 
         plt.ylabel('Performance Metric')
         plt.legend()
         plt.show()
