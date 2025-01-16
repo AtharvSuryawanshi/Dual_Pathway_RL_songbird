@@ -59,6 +59,7 @@ class Environment:
         self.pot_array = np.zeros((self.DAYS, self.N_SYLL))
         self.RPE = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL)) 
         self.RPE_SUM = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
+        self.W_diff = np.zeros((self.DAYS, self.N_SYLL))
         
         
     def artificial_landscape(self, coordinates, syll):
@@ -186,6 +187,7 @@ class Environment:
                         self.dw_day_array[day, syll] = d
                     elif WEIGHT_JUMP == 1:
                         # NEW WAY OF DOING THINGS
+                        temp_HVC_BG = self.model.W_hvc_bg[syll, :]
                         self.dw_day_array[day, syll] = self.RPE_SUM[day, iter, syll]
                         # an alternate way of jumping! 
                         rpe_sum_end_of_day = self.RPE_SUM[day, iter, syll]
@@ -194,6 +196,7 @@ class Environment:
                         dw_night = self.learning_rate*potentiation_factor*night_noise*10*self.model.bg_influence
                         self.model.W_hvc_bg[syll, :] += dw_night
                         self.model.W_hvc_bg = (self.model.W_hvc_bg + 1) % 2 -1 # bound between -1 and 1 in cyclical manner
+                        self.W_diff[day, syll] = np.sum(np.abs(self.model.W_hvc_bg[syll, :] - temp_HVC_BG))
                         self.pot_array[day, syll] = potentiation_factor
 
     def save_trajectory(self, syll):
@@ -270,11 +273,13 @@ class Environment:
         JUMP_MID = parameters['params']['JUMP_MID']
         if self.annealing:
             
-            fig, axs = plt.subplots(3,1,figsize=(7, 7))
+            fig, axs = plt.subplots(4,1,figsize=(10, 10))
             expanded_dw_day_array = np.zeros((self.DAYS*self.TRIALS, self.N_SYLL)) 
             expanded_pot_array = np.zeros((self.DAYS*self.TRIALS, self.N_SYLL))
+            expanded_diff_array = np.zeros((self.DAYS*self.TRIALS, self.N_SYLL))
             # Expand dw_day_array and pot_array to match the size of rewards
             expanded_dw_day_array = np.repeat(self.dw_day_array[:, syll], self.DAYS*self.TRIALS// len(self.dw_day_array[:, syll]))
+            expanded_diff_array = np.repeat(self.W_diff[:, syll], self.DAYS*self.TRIALS// len(self.W_diff[:, syll]))
             expanded_dw_day = expanded_dw_day_array.reshape(self.DAYS*self.TRIALS)
             expanded_pot_array = np.repeat(self.pot_array[:, syll], self.DAYS*self.TRIALS// len(self.pot_array[:, syll]))
             fig.suptitle(f'Annealing SEED:{self.seed} syllable: {syll}')
@@ -284,6 +289,7 @@ class Environment:
             # axs[0].set_ylim(0,4) 
             # axs[0].legend()
             axs[0].plot(expanded_pot_array, markersize=1, label='Potentiation factor')
+            axs[0].plot(expanded_diff_array/100, markersize=1, label='Weight diff')
             axs[0].set_ylabel('Size of night jump')
             axs[0].set_ylim(0, 1)
             axs[1].plot(self.rewards[:,:,syll].reshape(self.DAYS*self.TRIALS), '.', markersize=1, label='Reward', alpha = 0.05)
@@ -293,11 +299,15 @@ class Environment:
             axs[2].plot(JUMP_MID*np.ones((self.DAYS*self.TRIALS)))
             axs[2].plot(expanded_dw_day_array, markersize=1, label='End of day', color = 'brown')
             axs[2].set_ylabel('RPE sum for a day')
-            axs[2].set_ylim(0, 5)    
-            for i in range(3):
+            axs[2].set_ylim(0, 2)    
+            for i in range(4):
                 axs[i].vlines(range(0, self.DAYS*self.TRIALS, self.TRIALS), -3, 10, colors='black', linestyles='dashed', alpha = 0.1)           
             plt.tight_layout()
             axs[2].legend()
+            axs[3].plot(self.RPE[:,:,syll].reshape(self.DAYS*self.TRIALS), '.', markersize=1, label='RPE', alpha = 0.1)
+            axs[3].set_ylabel('RPE in a day ')
+            axs[3].set_ylim(-1,1)
+            axs[3].legend() 
             plt.show()
             # plt.savefig(os.path.join(save_dir, f"dw_day_{self.seed}_{syll}.png"))   
             # plt.close()

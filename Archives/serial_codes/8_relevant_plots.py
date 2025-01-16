@@ -224,7 +224,7 @@ class Environment:
         axs[5].set_ylim(-1, 1)
         axs[5].set_ylabel('RA activity')
         fig.suptitle('Results', fontsize=20)
-        plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+        plt.tight_layout(rect=[0, 0.03, 1, 0.95]) # type: ignore
         plt.show()
     
     def plot_dw_day(self):
