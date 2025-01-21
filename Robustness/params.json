@@ -24,6 +24,7 @@
     "RA_NOISE": 0.00,
 
     "LANDSCAPE": 1,
+    "SYRINX_LANDSCAPE": 1,
     "N_DISTRACTORS": 10,
     "TARGET_WIDTH": 0.3,
 
