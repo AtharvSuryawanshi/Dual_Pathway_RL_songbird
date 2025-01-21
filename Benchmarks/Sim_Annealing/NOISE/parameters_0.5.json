@@ -4,7 +4,7 @@
     "DAYS": 61,
     "N_SYLL": 1,
     "NOISE": 0.5,
-    "TEMPERATURE": 0.1,
+    "TEMPERATURE": 0.05,
     "REWARD_WINDOW": 10,
     "N_DISTRACTORS": 10,
     "TARGET_WIDTH": 0.3,
