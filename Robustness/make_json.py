@@ -71,6 +71,7 @@ BG_SIG_SLOPE_values = [2.5, 3]
 WEIGHT_JUMP_values = [0,1]
 JUMP_MID_values = [0.5, 0.6, 0.7]
 JUMP_SLOPE_values = [15,20,30,50]
+balance_factor_values = [1, 1.5, 2, 2.5, 3]
 
 
 
@@ -92,7 +93,8 @@ parameter_names = {
     "ANNEALING_MID_DECAY": ANNEAING_MID_DECAY_values,
     "WEIGHT_JUMP": WEIGHT_JUMP_values,
     "JUMP_MID": JUMP_MID_values,
-    "JUMP_SLOPE": JUMP_SLOPE_values
+    "JUMP_SLOPE": JUMP_SLOPE_values,
+    "balance_factor": balance_factor_values,
 }
 
 filename = "params.json"
