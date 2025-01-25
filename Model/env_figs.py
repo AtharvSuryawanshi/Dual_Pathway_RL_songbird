@@ -116,7 +116,7 @@ class Environment:
             self.model.bg_influence = True
             if day >= self.DAYS-1: 
                 self.model.bg_influence = False # BG lesion on the last day
-            sum_RPE = 0
+            sum_RPE = np.zeros(self.N_SYLL)
             for iter in range(self.TRIALS):
                 for syll in range(self.N_SYLL):
                     # input from HVC is determined by the syllable
@@ -152,8 +152,8 @@ class Environment:
                         self.model.W_hvc_ra += dw_hvc_ra*(1 - self.model.W_hvc_ra)*(self.model.W_hvc_ra + 1)
                     # storing values for plotting
                     self.RPE[day, iter, syll] = reward - reward_baseline   
-                    sum_RPE += self.RPE[day, iter, syll]
-                    self.RPE_SUM[day, iter, syll] = sum_RPE
+                    sum_RPE[syll] += self.RPE[day, iter, syll]
+                    self.RPE_SUM[day, iter, syll] = sum_RPE[syll]
                     dw_day[syll] += np.mean(np.abs(dw_hvc_bg))
                     self.hvc_bg_array[day, iter, syll] = self.model.W_hvc_bg[syll,1]
                     self.bg_out[day, iter, syll] = bg[1]
@@ -190,9 +190,9 @@ class Environment:
                         # an alternate way of jumping! 
                         rpe_sum_end_of_day = self.RPE_SUM[day, iter, syll]
                         potentiation_factor = 1 - sigmoid(rpe_sum_end_of_day, m = JUMP_SLOPE, a = JUMP_MID)
-                        night_noise = np.random.uniform(-1, 1, (self.hvc_size, self.bg_size))   
+                        night_noise = np.random.uniform(-1, 1, (self.bg_size))   
                         dw_night = self.learning_rate*potentiation_factor*night_noise*10*self.model.bg_influence
-                        self.model.W_hvc_bg += dw_night
+                        self.model.W_hvc_bg[syll, :] += dw_night
                         self.model.W_hvc_bg = (self.model.W_hvc_bg + 1) % 2 -1 # bound between -1 and 1 in cyclical manner
                         self.pot_array[day, syll] = potentiation_factor
 
@@ -298,7 +298,7 @@ class Environment:
                 axs[i].vlines(range(0, self.DAYS*self.TRIALS, self.TRIALS), -3, 10, colors='black', linestyles='dashed', alpha = 0.1)           
             plt.tight_layout()
             axs[2].legend()
-            plt.show()  
+            plt.show()
             # plt.savefig(os.path.join(save_dir, f"dw_day_{self.seed}_{syll}.png"))   
             # plt.close()
 
@@ -348,11 +348,12 @@ def build_and_run(seed, annealing, plot, parameters, NN):
     TRIALS = parameters['params']['TRIALS']
     tqdm.write(f" Random seed is {seed}")
     np.random.seed(seed)
+    if plot:
+        remove_prev_files()
     env = Environment(seed, parameters, NN)
     env.run(parameters, annealing)
     for i in range(N_SYLL):
         if plot:
-            remove_prev_files()
             env.save_trajectory(i)
             env.save_results(i)
             if annealing:
@@ -375,5 +376,4 @@ with open(params_path, "r") as f:
 # env.save_results(0)
 # env.save_dw_day(0)
 
-# print(build_and_run(927, True, True, parameters, NN))
-
+# print(build_and_run(926, True, True, parameters, NN))

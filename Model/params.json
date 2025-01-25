@@ -3,7 +3,7 @@
   {
     "TRIALS": 1000,
     "DAYS": 61,
-    "N_SYLL": 1,
+    "N_SYLL": 4,
     
     "WEIGHT_JUMP": 1,
     "JUMP_MID": 0.6,
@@ -14,7 +14,7 @@
     "ANNEALING_MID_DECAY": 0.3,
     "HEBBIAN_LEARNING": 1,
     "LOG_NORMAL": 0,
-    "balance_factor": 3,
+    "balance_factor": 2,
     "BG_influence": 1,
     "HARD_BOUND": 0,
 
