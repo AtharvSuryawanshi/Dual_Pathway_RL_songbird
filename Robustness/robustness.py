@@ -11,12 +11,12 @@ from env import build_and_run
 from functions import find_neighboring_directories
 import time 
 
-NOS_SEEDS = 1000
+NOS_SEEDS = 1
 time_per_iter = 6
 np.random.seed(0)
 seeds = np.random.randint(0, 100000, NOS_SEEDS)
 seeds.sort()
-wanted_directories = ["balance_factor", "TARGET_WIDTH"]# ["BG_NOISE", "LEARNING_RATE_RL", "REWARD_WINDOW", "LEARNING_RATE_HL", "RA_NOISE","N_DISTRACTORS","TARGET_WIDTH","ANNEALING"]#["ANNEALING", "BG_NOISE", "LEARNING_RATE_HL", "LEARNING_RATE_RL", "RA_NOISE", "N_BG_CLUSTERS", "N_DISTRACTORS", "REWARD_WINDOW", "TARGET_WIDTH"]                                       
+wanted_directories = ["ANNEALING"]# ["BG_NOISE", "LEARNING_RATE_RL", "REWARD_WINDOW", "LEARNING_RATE_HL", "RA_NOISE","N_DISTRACTORS","TARGET_WIDTH","ANNEALING"]#["ANNEALING", "BG_NOISE", "LEARNING_RATE_HL", "LEARNING_RATE_RL", "RA_NOISE", "N_BG_CLUSTERS", "N_DISTRACTORS", "REWARD_WINDOW", "TARGET_WIDTH"]                                       
 neighboring_directories = find_neighboring_directories()
 for directory in neighboring_directories:
     if directory in wanted_directories:
