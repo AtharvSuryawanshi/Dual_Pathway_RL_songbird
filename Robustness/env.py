@@ -36,9 +36,13 @@ class Environment:
         self.rewards = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
         self.actions = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL, self.mc_size))
         self.hvc_bg_array = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
+        self.hvc_bg_array_all = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL, self.hvc_size, self.bg_size))   
         self.bg_out = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
         self.hvc_ra_array = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
+        self.hvc_ra_array_all = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL, self.hvc_size, self.ra_size)) 
         self.ra_out = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
+        self.ra_all = np.zeros((self.DAYS, self.TRIALS,self.N_SYLL, self.ra_size))
+        self.bg_all = np.zeros((self.DAYS, self.TRIALS,self.N_SYLL, self.bg_size))
         self.dw_day_array = np.zeros((self.DAYS, self.N_SYLL))
         self.pot_array = np.zeros((self.DAYS, self.N_SYLL))
         self.RPE = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL)) 
@@ -124,7 +128,12 @@ class Environment:
                     self.hvc_bg_array[day, iter, syll] = self.model.W_hvc_bg[syll,1]
                     self.bg_out[day, iter, syll] = bg[1]
                     self.hvc_ra_array[day, iter, syll] = self.model.W_hvc_ra[syll,1]
+                    self.hvc_ra_array_all[day, iter, syll, :] = self.model.W_hvc_ra[syll,:]
                     self.ra_out[day, iter, syll] = ra[0]
+                    self.ra_all[day, iter, syll, :] = ra
+                    self.hvc_bg_array_all[day, iter, syll, :] = self.model.W_hvc_bg[syll,:]
+                    self.bg_all[day, iter, syll, :] = bg
+
             # Annealing
             if self.annealing:
                 for syll in range(self.N_SYLL):
@@ -260,7 +269,7 @@ class Environment:
                 axs[i].vlines(range(0, self.DAYS*self.TRIALS, self.TRIALS), -3, 10, colors='black', linestyles='dashed', alpha = 0.1)           
             plt.tight_layout()
             axs[2].legend()
-            plt.show()  
+            plt.show()
             # plt.savefig(os.path.join(save_dir, f"dw_day_{self.seed}_{syll}.png"))   
             # plt.close()
             
@@ -297,5 +306,4 @@ with open(params_path, "r") as f:
 # env.save_results(0)
 # env.save_dw_day(0)
 
-# print(build_and_run(927, True, True, parameters, NN))
-
+# print(build_and_run(926, True, True, parameters, NN))

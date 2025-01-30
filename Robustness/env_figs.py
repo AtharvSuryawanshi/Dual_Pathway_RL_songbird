@@ -63,7 +63,7 @@ class Environment:
         
     def artificial_landscape(self, coordinates, syll):
         center = self.centers[syll, :]
-        reward_scape = gaussian(coordinates, 1, center, 0.3)
+        reward_scape = gaussian(coordinates, 1, center, self.target_width)
         if self.n_distractors == 0:
             return reward_scape
         hills = []
@@ -348,11 +348,12 @@ def build_and_run(seed, annealing, plot, parameters, NN):
     TRIALS = parameters['params']['TRIALS']
     tqdm.write(f" Random seed is {seed}")
     np.random.seed(seed)
+    if plot:
+        remove_prev_files()
     env = Environment(seed, parameters, NN)
     env.run(parameters, annealing)
     for i in range(N_SYLL):
         if plot:
-            remove_prev_files()
             env.save_trajectory(i)
             env.save_results(i)
             if annealing:

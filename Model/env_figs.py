@@ -63,7 +63,7 @@ class Environment:
         
     def artificial_landscape(self, coordinates, syll):
         center = self.centers[syll, :]
-        reward_scape = gaussian(coordinates, 1, center, 0.3)
+        reward_scape = gaussian(coordinates, 1, center, self.target_width)
         if self.n_distractors == 0:
             return reward_scape
         hills = []
