@@ -227,7 +227,7 @@ class Environment:
         # plt.close()  # Close the plot to avoid memory leaks
         
     def save_results(self, syll):
-        fig, axs = plt.subplots(7, 1, figsize=(10, 15))
+        fig, axs = plt.subplots(7, 1, figsize=(10, 10))
         axs[0].plot(self.rewards[:,:,syll].reshape(self.DAYS*self.TRIALS), '.', markersize=1, linestyle='None')
         axs[0].hlines(0.7, 0, self.DAYS*self.TRIALS, colors='r', linestyles='dashed')
         axs[0].set_ylim(0, 1)
@@ -270,7 +270,7 @@ class Environment:
         JUMP_MID = parameters['params']['JUMP_MID']
         if self.annealing:
             
-            fig, axs = plt.subplots(3,1,figsize=(7, 7))
+            fig, axs = plt.subplots(3,1,figsize=(10, 5))
             expanded_dw_day_array = np.zeros((self.DAYS*self.TRIALS, self.N_SYLL)) 
             expanded_pot_array = np.zeros((self.DAYS*self.TRIALS, self.N_SYLL))
             # Expand dw_day_array and pot_array to match the size of rewards
