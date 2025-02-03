@@ -3,7 +3,7 @@
   {
     "TRIALS": 1000,
     "DAYS": 61,
-    "N_SYLL": 5,
+    "N_SYLL": 1,
     
     "WEIGHT_JUMP": 1,
     "JUMP_MID": 0.6,
@@ -25,7 +25,7 @@
 
     "LANDSCAPE": 0,
     "N_DISTRACTORS": 10,
-    "TARGET_WIDTH": 0.3,
+    "TARGET_WIDTH": 0.4,
 
     "LEARNING_RATE_RL": 0.2,
     "LEARNING_RATE_HL": 2.0e-5,
