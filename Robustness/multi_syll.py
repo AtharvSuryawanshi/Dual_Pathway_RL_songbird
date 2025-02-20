@@ -34,8 +34,8 @@ def run_mutli_syll_robust(state, nos_seeds, parameters, NN):
         print(f"Time remaining: {np.round((total_time - (i+1) * time_per_iter*N_SYLL) / 60, 2)} minutes")
     return total_returns
 
-nos_seeds = 100
-state = 5
+nos_seeds = 25
+state = 4
 total_returns = run_mutli_syll_robust(state, nos_seeds, parameters, NN)
 
 np.save("multi_syll_robust.npy", total_returns)

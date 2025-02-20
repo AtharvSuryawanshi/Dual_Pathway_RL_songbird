@@ -78,6 +78,7 @@ class Environment:
         WEIGHT_JUMP = parameters['params']['WEIGHT_JUMP']
         JUMP_MID = parameters['params']['JUMP_MID']
         JUMP_SLOPE = parameters['params']['JUMP_SLOPE']
+        JUMP_FACTOR = parameters['params']['JUMP_FACTOR']
         HARD_BOUND = parameters['params']['HARD_BOUND']
 
         # each day, 1000 trial, n_syll syllables
@@ -161,8 +162,11 @@ class Environment:
                         rpe_sum_end_of_day = self.RPE_SUM[day, iter, syll]
                         potentiation_factor = 1 - sigmoid(rpe_sum_end_of_day, m = JUMP_SLOPE, a = JUMP_MID)
                         night_noise = np.random.uniform(-1, 1, (self.hvc_size, self.bg_size))   
-                        dw_night = self.learning_rate*potentiation_factor*night_noise*10*self.model.bg_influence
-                        self.model.W_hvc_bg += dw_night
+                        dw_night = self.learning_rate*potentiation_factor*night_noise*JUMP_FACTOR*self.model.bg_influence
+                        W1 = self.model.W_hvc_bg + dw_night
+                        W2 = self.model.W_hvc_bg - dw_night
+                        indices_in_bound = (W1 <= 1) & (W1 >= -1)
+                        self.model.W_hvc_bg = W1*indices_in_bound + W2*(~indices_in_bound)
                         self.model.W_hvc_bg = (self.model.W_hvc_bg + 1) % 2 -1 # bound between -1 and 1 in cyclical manner
                         self.pot_array[day, syll] = potentiation_factor
                         

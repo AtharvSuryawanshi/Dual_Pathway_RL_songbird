@@ -57,6 +57,7 @@ class Environment:
         self.bg_all = np.zeros((self.DAYS, self.TRIALS,self.N_SYLL, self.bg_size))
         self.dw_day_array = np.zeros((self.DAYS, self.N_SYLL))
         self.pot_array = np.zeros((self.DAYS, self.N_SYLL))
+        self.jump_size_array = np.zeros((self.DAYS, self.N_SYLL))
         self.RPE = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL)) 
         self.RPE_SUM = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
         
@@ -178,7 +179,7 @@ class Environment:
                         potentiation_factor[syll] = 1-p 
                         # implementing night weight changes
                         night_noise = np.random.uniform(-1, 1, self.bg_size) # make it lognormal
-                        dw_night = self.learning_rate*potentiation_factor.reshape(self.hvc_size,1)*night_noise*10*self.model.bg_influence
+                        dw_night = self.learning_rate*potentiation_factor.reshape(self.hvc_size,1)*night_noise*3*self.model.bg_influence
                         self.model.W_hvc_bg += dw_night
                         self.model.W_hvc_bg = (self.model.W_hvc_bg + 1) % 2 -1 # bound between -1 and 1 in cyclical manner
                         # storing values
@@ -191,9 +192,16 @@ class Environment:
                         rpe_sum_end_of_day = self.RPE_SUM[day, iter, syll]
                         potentiation_factor = 1 - sigmoid(rpe_sum_end_of_day, m = JUMP_SLOPE, a = JUMP_MID)
                         night_noise = np.random.uniform(-1, 1, (self.bg_size))   
-                        dw_night = self.learning_rate*potentiation_factor*night_noise*10*self.model.bg_influence
+                        dw_night = self.learning_rate*potentiation_factor*night_noise*100*self.model.bg_influence
+                        W1 = self.model.W_hvc_bg[syll, :] + dw_night
+                        W2 = self.model.W_hvc_bg[syll, :] - dw_night
+                        indices_in_bound = (W1 <= 1) & (W1 >= -1)
+                        self.model.W_hvc_bg[syll, :] = W1*indices_in_bound + W2*(~indices_in_bound)
+                        x = self.model.W_hvc_bg
                         self.model.W_hvc_bg[syll, :] += dw_night
                         self.model.W_hvc_bg = (self.model.W_hvc_bg + 1) % 2 -1 # bound between -1 and 1 in cyclical manner
+                        diff = np.sum(np.abs(self.model.W_hvc_bg - x))
+                        self.jump_size_array[day, syll] = diff
                         self.pot_array[day, syll] = potentiation_factor
 
     def save_trajectory(self, syll):
@@ -277,6 +285,7 @@ class Environment:
             expanded_dw_day_array = np.repeat(self.dw_day_array[:, syll], self.DAYS*self.TRIALS// len(self.dw_day_array[:, syll]))
             expanded_dw_day = expanded_dw_day_array.reshape(self.DAYS*self.TRIALS)
             expanded_pot_array = np.repeat(self.pot_array[:, syll], self.DAYS*self.TRIALS// len(self.pot_array[:, syll]))
+            expanded_jump_size_array = np.repeat(self.jump_size_array[:, syll], self.DAYS*self.TRIALS// len(self.jump_size_array[:, syll]))
             fig.suptitle(f'Annealing SEED:{self.seed} syllable: {syll}')
             # axs[0].plot(expanded_dw_day_array, markersize=1, label='dW_day')
             # axs[0].plot(ANNEALING_MID*np.ones((self.DAYS*self.TRIALS)), label = 'Threshold')
@@ -284,8 +293,10 @@ class Environment:
             # axs[0].set_ylim(0,4) 
             # axs[0].legend()
             axs[0].plot(expanded_pot_array, markersize=1, label='Potentiation factor')
+            axs[0].plot(expanded_jump_size_array/50, markersize=1, label='Size of night jump') 
             axs[0].set_ylabel('Size of night jump')
-            axs[0].set_ylim(0, 1)
+            axs[0].legend()
+            axs[0].set_ylim(0, 2)
             axs[1].plot(self.rewards[:,:,syll].reshape(self.DAYS*self.TRIALS), '.', markersize=1, label='Reward', alpha = 0.05)
             axs[1].set_ylabel('Rewards')
             axs[1].set_ylim(0, 1)

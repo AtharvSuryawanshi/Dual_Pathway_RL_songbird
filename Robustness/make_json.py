@@ -62,7 +62,7 @@ N_BG_CLUSTERS_values = [2, 10]
 N_DISTRACTORS_values = [5, 10, 20, 50]
 REWARD_WINDOW_values = [1, 5, 10, 20, 30, 50]
 ANNEALING_values = [0,1]
-RA_SIG_SLOPE_values = [18, 20]
+RA_SIG_SLOPE_values = [16, 18, 20, 22]
 TARGET_WIDTH_values = [0.2, 0.3, 0.4, 0.5, 0.7]
 ANNEALING_SLOPE_values = [1,2,3,4,5,6]
 ANNEALING_MID_values = [1,2,3,4]
@@ -71,6 +71,7 @@ BG_SIG_SLOPE_values = [2.5, 3]
 WEIGHT_JUMP_values = [0,1]
 JUMP_MID_values = [0.5, 0.6, 0.7]
 JUMP_SLOPE_values = [15,20,30,50]
+JUMP_FACTOR_values = [0.5, 1, 5, 10, 20, 100]
 balance_factor_values = [1, 1.5, 2, 2.5, 3]
 
 
@@ -94,6 +95,7 @@ parameter_names = {
     "WEIGHT_JUMP": WEIGHT_JUMP_values,
     "JUMP_MID": JUMP_MID_values,
     "JUMP_SLOPE": JUMP_SLOPE_values,
+    "JUMP_FACTOR": JUMP_FACTOR_values,
     "balance_factor": balance_factor_values,
 }
 
