@@ -109,6 +109,7 @@ class Environment:
         WEIGHT_JUMP = parameters['params']['WEIGHT_JUMP']
         JUMP_MID = parameters['params']['JUMP_MID']
         JUMP_SLOPE = parameters['params']['JUMP_SLOPE']
+        JUMP_FACTOR = parameters['params']['JUMP_FACTOR']
         HARD_BOUND = parameters['params']['HARD_BOUND']
 
         # each day, 1000 trial, n_syll syllables
@@ -203,6 +204,17 @@ class Environment:
                         diff = np.sum(np.abs(self.model.W_hvc_bg - x))
                         self.jump_size_array[day, syll] = diff
                         self.pot_array[day, syll] = potentiation_factor
+                    elif WEIGHT_JUMP == 2: # something Arthur told
+                        abs_diff = np.abs(self.hvc_bg_array_all[day, -1, syll, :] - self.hvc_bg_array_all[day, 0, syll, :])
+                        potentiation_factor = 1 - sigmoid(abs_diff, m = JUMP_SLOPE, a = JUMP_MID)
+                        # print(np.mean(potentiation_factor))
+                        night_noise = np.random.uniform(-1, 1, (self.bg_size))
+                        dw_night = self.learning_rate*JUMP_FACTOR*potentiation_factor[syll, :]*night_noise*self.model.bg_influence
+                        W1 = self.model.W_hvc_bg[syll, :] + dw_night    
+                        W2 = self.model.W_hvc_bg[syll, :] - dw_night
+                        indices_in_bound = (W1 <= 1) & (W1 >= -1)
+                        self.model.W_hvc_bg[syll, :] = W1*indices_in_bound + W2*(~indices_in_bound)
+
 
     def save_trajectory(self, syll):
         fig, axs = plt.subplots(figsize=(10, 9))
