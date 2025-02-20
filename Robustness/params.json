@@ -3,10 +3,10 @@
   {
     "TRIALS": 1000,
     "DAYS": 61,
-    "N_SYLL": 1,
+    "N_SYLL": 4,
     
     "WEIGHT_JUMP": 2,
-    "JUMP_MID": 0.1,
+    "JUMP_MID": 0.3,
     "JUMP_SLOPE": 30,
     "JUMP_FACTOR": 3, 
   

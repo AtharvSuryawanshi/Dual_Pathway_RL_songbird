@@ -71,7 +71,7 @@ BG_SIG_SLOPE_values = [2.5, 3]
 WEIGHT_JUMP_values = [0,1]
 JUMP_MID_values = [0.1, 0.3, 0.5, 0.7]
 JUMP_SLOPE_values = [15,20,30,50]
-JUMP_FACTOR_values = [0.5, 1, 5, 10, 20, 100]
+JUMP_FACTOR_values = [0.5, 1, 3, 5, 10, 20]
 balance_factor_values = [1, 1.5, 2, 2.5, 3]
 
 
