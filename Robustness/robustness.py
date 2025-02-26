@@ -11,9 +11,9 @@ from env_figs import build_and_run
 from functions import find_neighboring_directories
 import time 
 
-NOS_SEEDS = 100
-time_per_iter = 6
-state = 4
+NOS_SEEDS = 200
+time_per_iter = 7
+state = 5
 np.random.seed(state)
 seeds = np.random.randint(0, 100000, NOS_SEEDS)
 seeds.sort()
