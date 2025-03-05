@@ -206,13 +206,16 @@ class Environment:
                         self.pot_array[day, syll] = potentiation_factor
                     elif WEIGHT_JUMP == 2: # something Arthur told
                         abs_diff = np.abs(self.hvc_bg_array_all[day, -1, syll, :] - self.hvc_bg_array_all[day, 0, syll, :])
+                        # tqdm.write(f"abs_diff: {abs_diff.max()}, {abs_diff.min()}, {abs_diff.mean()}")     
                         potentiation_factor = 1 - sigmoid(abs_diff, m = JUMP_SLOPE, a = JUMP_MID)
                         # print(np.mean(potentiation_factor))
                         night_noise = np.random.uniform(-1, 1, (self.bg_size))
                         dw_night = self.learning_rate*JUMP_FACTOR*potentiation_factor[syll, :]*night_noise*self.model.bg_influence
-                        W1 = self.model.W_hvc_bg[syll, :] + dw_night    
+                        # print(np.max(dw_night), np.min(dw_night))
+                        W1 = self.model.W_hvc_bg[syll, :] + dw_night 
                         W2 = self.model.W_hvc_bg[syll, :] - dw_night
                         indices_in_bound = (W1 <= 1) & (W1 >= -1)
+                        self.pot_array[day, syll] = potentiation_factor[syll, 0]
                         self.model.W_hvc_bg[syll, :] = W1*indices_in_bound + W2*(~indices_in_bound)
 
 
