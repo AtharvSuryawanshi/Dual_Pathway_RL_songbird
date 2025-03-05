@@ -17,16 +17,33 @@ class Environment:
         self.bg_size = parameters['const']['BG_SIZE']
         self.ra_size = parameters['const']['RA_SIZE']
         self.mc_size = parameters['const']['MC_SIZE']
+        self.LANDSCAPE = parameters['params']['LANDSCAPE']
         self.n_distractors = parameters['params']['N_DISTRACTORS']
         self.target_width = parameters['params']['TARGET_WIDTH']
         self.seed = seed
+        if self.LANDSCAPE == 0:
+            self.limit = 1.5
+        else:
+            self.limit = 1
         # np.random.seed(seed)
         self.model = NN(parameters, seed)
         # landscape parameters
-        self.centers = np.random.uniform(-0.9, 0.9, (self.N_SYLL, 2))
-        self.heights = np.random.uniform(0.2, 0.7, (self.N_SYLL, self.n_distractors))
-        self.means = np.random.uniform(-1, 1, (self.N_SYLL,self.n_distractors, 2))
-        self.spreads = np.random.uniform(0.1, 0.6, (self.N_SYLL, self.n_distractors))
+        if self.LANDSCAPE == 0: # ARTIFICAL LANDSCAPE
+            self.centers = np.random.uniform(-0.9, 0.9, (self.N_SYLL, 2))
+            self.heights = np.random.uniform(0.2, 0.7, (self.N_SYLL, self.n_distractors))
+            self.means = np.random.uniform(-1, 1, (self.N_SYLL,self.n_distractors, 2))
+            self.spreads = np.random.uniform(0.1, 0.6, (self.N_SYLL, self.n_distractors))
+        else: # SYRINX LANDSCAPE
+            if self.N_SYLL > 4:
+                raise ValueError('Only 4 syllables are available in the syrinx landscape')
+            self.syrinx_contours = []
+            self.syrinx_targets = []
+            for syll in range(self.N_SYLL):
+                base = np.load(f"contours/Syll{syll+1}.npy")
+                Z, target = make_contour(base)
+                self.syrinx_contours.append(Z)
+                self.syrinx_targets.append(target)
+                self.centers = np.array(self.syrinx_targets)
         # data storage
         self.rewards = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
         self.actions = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL, self.mc_size))
@@ -37,8 +54,8 @@ class Environment:
         self.dw_day_array = np.zeros((self.DAYS, self.N_SYLL))
         self.pot_array = np.zeros((self.DAYS, self.N_SYLL))
         
-    def get_reward(self, coordinates, syll):
-        # landscape creation and reward calculation
+        
+    def artificial_landscape(self, coordinates, syll):
         center = self.centers[syll, :]
         reward_scape = gaussian(coordinates, 1, center, self.target_width)
         if self.n_distractors == 0:
@@ -51,7 +68,25 @@ class Environment:
             spread = self.spreads[syll, i]
             hills.append(gaussian(coordinates, height, mean, spread))
         return np.maximum.reduce(hills)
-     
+    
+    def syrinx_landscape(self, coordinates, syll, n = 256):  
+        contour = self.syrinx_contours[syll]
+        target_pos = self.syrinx_targets[syll]
+        x, y = coordinates[0], coordinates[1]
+        x = max(min(x, 0.999), -1)
+        y = max(min(y, 0.999), -1)
+        x = int((x + 1) / 2 * n)
+        y = int((y + 1) / 2 * n)
+        return contour[x, y]
+
+        
+    def get_reward(self, coordinates, syll):
+        # landscape creation and reward calculation
+        if self.LANDSCAPE == False:
+            return self.artificial_landscape(coordinates, syll)
+        else:
+            return self.syrinx_landscape(coordinates, syll)
+             
     def run(self, parameters, annealing = False):
         # modes 
         self.annealing = annealing
@@ -61,8 +96,7 @@ class Environment:
         learning_rate_hl = parameters['params']['LEARNING_RATE_HL']
         REWARD_WINDOW = parameters['params']['REWARD_WINDOW']
         HEBBIAN_LEARNING = parameters['params']['HEBBIAN_LEARNING']
-        ANNEALING_SLOPE = parameters['params']['ANNEALING_SLOPE']
-        ANNEALING_MID = parameters['params']['ANNEALING_MID']
+        HARD_BOUND = parameters['params']['HARD_BOUND']
 
         # each day, 1000 trial, n_syll syllables
         iter = 0
@@ -96,33 +130,78 @@ class Environment:
                     # bound weights between +-1
                     # np.clip(self.model.W_hvc_bg, -1, 1, out = self.model.W_hvc_bg)
                     # np.clip(self.model.W_hvc_ra, -1, 1, out = self.model.W_hvc_ra)
-                    np.core.umath.maximum(np.core.umath.minimum(self.model.W_hvc_bg, 1, out = self.model.W_hvc_bg), -1, out = self.model.W_hvc_bg) # type: ignore
-                    np.core.umath.maximum(np.core.umath.minimum(self.model.W_hvc_ra, 1, out = self.model.W_hvc_ra), -1, out = self.model.W_hvc_ra) # type: ignore
+                    if HARD_BOUND:
+                        self.model.W_hvc_bg += dw_hvc_bg
+                        self.model.W_hvc_ra += dw_hvc_ra    
+                        np.core.umath.maximum(np.core.umath.minimum(self.model.W_hvc_bg, 1, out = self.model.W_hvc_bg), -1, out = self.model.W_hvc_bg) # type: ignore
+                        np.core.umath.maximum(np.core.umath.minimum(self.model.W_hvc_ra, 1, out = self.model.W_hvc_ra), -1, out = self.model.W_hvc_ra) # type: ignore
+                    else: 
+                        self.model.W_hvc_bg += dw_hvc_bg*(1 - self.model.W_hvc_bg)*(self.model.W_hvc_bg + 1)
+                        self.model.W_hvc_ra += dw_hvc_ra*(1 - self.model.W_hvc_ra)*(self.model.W_hvc_ra + 1)
                     # storing values for plotting
                     dw_day[syll] += np.mean(np.abs(dw_hvc_bg))
                     self.hvc_bg_array[day, trial, syll] = self.model.W_hvc_bg[syll,1]
                     self.bg_out[day, trial, syll] = bg[1]
                     self.hvc_ra_array[day, trial, syll] = self.model.W_hvc_ra[syll,1]
                     self.ra_out[day, trial, syll] = ra[0]
+
+
+
                     iter += 1
             # Annealing
             if self.annealing:
                 for syll in range(self.N_SYLL):
-                    ''' input daily sum, output scaling factor for potentiation'''
-                    # calculating potentiation 
-                    d = dw_day[syll]*100 # scaling up to be comparable
-                    p = 1 * sigmoid(1*d, m = ANNEALING_SLOPE, a = ANNEALING_MID)
-                    potentiation_factor = np.zeros((self.hvc_size))
-                    potentiation_factor[syll] = 1-p 
-                    # implementing night weight changes
-                    night_noise = np.random.uniform(-1, 1, self.bg_size) # make it lognormal
-                    dw_night = self.learning_rate*potentiation_factor.reshape(self.hvc_size,1)*night_noise*10*self.model.bg_influence
-                    self.model.W_hvc_bg += dw_night
-                    self.model.W_hvc_bg = (self.model.W_hvc_bg + 1) % 2 -1 # bound between -1 and 1 in cyclical manner
-                    # storing values
-                    self.pot_array[day, syll] = 1-p
-                    self.dw_day_array[day, syll] = d
-        
+                    pass
+                    # if WEIGHT_JUMP == 0:
+                    #     ''' input daily sum, output scaling factor for potentiation'''
+                    #     # OLD WAY OF DOING THINGS
+                    #     # calculating potentiation 
+                    #     d = dw_day[syll]*100 # scaling up to be comparable
+                    #     annealing_mid_final = ANNEALING_MID*np.exp(-ANNEALING_MID_DECAY*day/60)
+                    #     p = 1 * sigmoid(1*d, m = annealing_mid_final, a = ANNEALING_MID)
+                    #     potentiation_factor = np.zeros((self.hvc_size))
+                    #     potentiation_factor[syll] = 1-p 
+                    #     # implementing night weight changes
+                    #     night_noise = np.random.uniform(-1, 1, self.bg_size) # make it lognormal
+                    #     dw_night = self.learning_rate*potentiation_factor.reshape(self.hvc_size,1)*night_noise*3*self.model.bg_influence
+                    #     self.model.W_hvc_bg += dw_night
+                    #     self.model.W_hvc_bg = (self.model.W_hvc_bg + 1) % 2 -1 # bound between -1 and 1 in cyclical manner
+                    #     # storing values
+                    #     self.pot_array[day, syll] = 1-p
+                    #     self.dw_day_array[day, syll] = d
+                    # elif WEIGHT_JUMP == 1:
+                    #     # NEW WAY OF DOING THINGS
+                    #     self.dw_day_array[day, syll] = self.RPE_SUM[day, iter, syll]
+                    #     # an alternate way of jumping! 
+                    #     rpe_sum_end_of_day = self.RPE_SUM[day, iter, syll]
+                    #     potentiation_factor = 1 - sigmoid(rpe_sum_end_of_day, m = JUMP_SLOPE, a = JUMP_MID)
+                    #     night_noise = np.random.uniform(-1, 1, (self.bg_size))   
+                    #     dw_night = self.learning_rate*potentiation_factor*night_noise*100*self.model.bg_influence
+                    #     W1 = self.model.W_hvc_bg[syll, :] + dw_night
+                    #     W2 = self.model.W_hvc_bg[syll, :] - dw_night
+                    #     indices_in_bound = (W1 <= 1) & (W1 >= -1)
+                    #     self.model.W_hvc_bg[syll, :] = W1*indices_in_bound + W2*(~indices_in_bound)
+                    #     x = self.model.W_hvc_bg
+                    #     self.model.W_hvc_bg[syll, :] += dw_night
+                    #     self.model.W_hvc_bg = (self.model.W_hvc_bg + 1) % 2 -1 # bound between -1 and 1 in cyclical manner
+                    #     diff = np.sum(np.abs(self.model.W_hvc_bg - x))
+                    #     self.jump_size_array[day, syll] = diff
+                    #     self.pot_array[day, syll] = potentiation_factor
+                    # elif WEIGHT_JUMP == 2: # something Arthur told
+                    #     abs_diff = np.abs(self.hvc_bg_array_all[day, -1, syll, :] - self.hvc_bg_array_all[day, 0, syll, :])
+                    #     # tqdm.write(f"abs_diff: {abs_diff.max()}, {abs_diff.min()}, {abs_diff.mean()}")     
+                    #     potentiation_factor = 1 - sigmoid(abs_diff, m = JUMP_SLOPE, a = JUMP_MID)
+                    #     # print(np.mean(potentiation_factor))
+                    #     night_noise = np.random.uniform(-1, 1, (self.bg_size))
+                    #     dw_night = self.learning_rate*JUMP_FACTOR*potentiation_factor[syll, :]*night_noise*self.model.bg_influence
+                    #     # print(np.max(dw_night), np.min(dw_night))
+                    #     W1 = self.model.W_hvc_bg[syll, :] + dw_night 
+                    #     W2 = self.model.W_hvc_bg[syll, :] - dw_night
+                    #     indices_in_bound = (W1 <= 1) & (W1 >= -1)
+                    #     self.pot_array[day, syll] = potentiation_factor[syll, 0]
+                    #     self.model.W_hvc_bg[syll, :] = W1*indices_in_bound + W2*(~indices_in_bound)
+
+
     def save_trajectory(self, syll):
         fig, axs = plt.subplots(figsize=(10, 9))
         # generate grid 

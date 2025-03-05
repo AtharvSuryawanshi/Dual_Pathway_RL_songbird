@@ -16,8 +16,8 @@ for directory in neighboring_directories:
             print(f"Removed JSON file: {full_path}")
 
 # Define parameter values
-BG_NOISE_values = [0.001, 0.01, 0.05, 0.1, 0.2, 0.5]
-DECAY_FACTOR_values = [1, 2.5, 5, 10]
+BG_NOISE_values = [0.05, 0.1, 0.2, 0.3, 0.4, 0.5]
+DECAY_FACTOR_values = [1, 2, 2.5, 5]
 
 
 # Define parameter names and corresponding values

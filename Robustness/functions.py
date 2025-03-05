@@ -101,28 +101,3 @@ def make_contour(Z, n=256):
     targetpos[0] = (targetZpos[1] / Z.shape[1]) * 2 - 1
     targetpos[1] = (targetZpos[0] / Z.shape[0]) * 2 - 1
     return Z, targetpos
-
-# def make_contour(Z, n = 256):
-#     Z = Z / Z.max()
-
-#     # Transform exponentially
-#     Z = np.power(1000, Z)
-#     Z = Z / Z.max()
-
-#     # Interpolate
-#     x = np.linspace(0, 1., Z.shape[0])
-#     y = np.linspace(0, .2, Z.shape[1])
-
-#     x2 = np.linspace(0, 1., n)
-#     y2 = np.linspace(0, .2, n)
-#     f = interp2d(x, y, Z, kind='cubic')
-#     Z = f(x2, y2) 
-
-#     Z = (Z-np.min(Z))/(np.max(Z)-np.min(Z))
-#     Z = Z / Z.max()
-
-#     targetZpos = np.argwhere(Z==1)[0]
-#     targetpos = np.zeros((2))
-#     targetpos[0] = (targetZpos[1] / Z.shape[1]) * 2 - 1
-#     targetpos[1] = (targetZpos[0] / Z.shape[0]) * 2 - 1
-#     return Z, targetpos

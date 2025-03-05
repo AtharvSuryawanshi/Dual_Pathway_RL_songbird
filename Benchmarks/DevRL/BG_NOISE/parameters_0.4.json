@@ -12,7 +12,7 @@
     "BG_influence": 1,
     "HARD_BOUND": 0,
     "REWARD_WINDOW": 10,
-    "BG_NOISE": 0.05,
+    "BG_NOISE": 0.4,
     "DECAY_FACTOR": 2.2,
     "RA_NOISE": 0.0,
     "LANDSCAPE": 0,
