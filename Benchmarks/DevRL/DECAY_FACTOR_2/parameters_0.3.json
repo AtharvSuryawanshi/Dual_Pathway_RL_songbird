@@ -10,7 +10,7 @@
     "LOG_NORMAL": 0,
     "balance_factor": 3,
     "BG_influence": 1,
-    "HARD_BOUND": 0,
+    "HARD_BOUND": 1,
     "REWARD_WINDOW": 10,
     "BG_NOISE": 0.3,
     "DECAY_FACTOR": 2.2,
