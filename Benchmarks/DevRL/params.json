@@ -12,12 +12,12 @@
       "LOG_NORMAL": 0,
       "balance_factor": 3,
       "BG_influence": 1,
-      "HARD_BOUND": 1,
+      "HARD_BOUND": 0,
 
       "REWARD_WINDOW": 10,
 
-      "BG_NOISE": 0.2,
-      "DECAY_FACTOR": 2.2,
+      "BG_NOISE": 0.15,
+      "DECAY_FACTOR": 3,
       "RA_NOISE": 0.00,
 
       "LANDSCAPE": 0,

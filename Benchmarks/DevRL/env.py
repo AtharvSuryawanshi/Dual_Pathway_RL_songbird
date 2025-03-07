@@ -263,10 +263,11 @@ class Environment:
         fig.suptitle(f'Results SEED:{self.seed} syllable: {syll}', fontsize=20)
         plt.tight_layout(rect=[0, 0.03, 1, 0.95]) # type: ignore    
         # Create the "plots" directory if it doesn't exist
-        os.makedirs(save_dir, exist_ok = True)
+        # os.makedirs(save_dir, exist_ok = True)
+        plt.show()
         # Save the plot
-        plt.savefig(os.path.join(save_dir, f"results_{self.seed}_{syll}.png"))
-        plt.close()  # Close the plot to avoid memory leaks
+        # plt.savefig(os.path.join(save_dir, f"results_{self.seed}_{syll}.png"))
+        # plt.close()  # Close the plot to avoid memory leaks
         
     def save_dw_day(self, syll):
         if self.annealing:
@@ -282,11 +283,12 @@ class Environment:
             plt.xlabel('Days')
             plt.ylabel('dW_day')
             plt.legend()
-            # Create the "plots" directory if it doesn't exist
-            os.makedirs(save_dir, exist_ok = True)
-            # Save the plot
-            plt.savefig(os.path.join(save_dir, f"dw_{self.seed}_{syll}.png"))
-            plt.close()  # Close the plot to avoid memory leaks  
+            plt.show()
+            # # Create the "plots" directory if it doesn't exist
+            # os.makedirs(save_dir, exist_ok = True)
+            # # Save the plot
+            # plt.savefig(os.path.join(save_dir, f"dw_{self.seed}_{syll}.png"))
+            # plt.close()  # Close the plot to avoid memory leaks  
 
     def plot_combined_returns(self):
         plt.figure()
