@@ -56,7 +56,7 @@ for directory in neighboring_directories:
 # Define parameter values
 # Define parameter values
 BG_NOISE_values = [0.05, 0.1, 0.2, 0.3, 0.4, 0.5]
-DECAY_FACTOR_values = [1, 2, 2.2, 2.5, 3]
+DECAY_FACTOR_values = [1, 1.5, 2, 2.2, 2.5, 3]
 
 
 # Define parameter names and corresponding values
