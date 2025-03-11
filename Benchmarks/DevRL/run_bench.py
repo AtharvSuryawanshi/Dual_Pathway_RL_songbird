@@ -13,7 +13,7 @@ np.random.seed(state)
 seeds = np.random.randint(0, 100000, NOS_SEEDS)
 seeds.sort()
 
-wanted_directories = ['DECAY_FACTOR']
+wanted_directories = ['DECAY_FACTOR', 'BG_NOISE']   
 
 neighboring_directories = find_neighboring_directories()
 for directory in neighboring_directories:
