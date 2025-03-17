@@ -12,8 +12,8 @@ from functions import find_neighboring_directories
 import time 
 
 NOS_SEEDS = 100
-time_per_iter = 7
-state = 1
+time_per_iter = 7.52
+state = 2
 np.random.seed(state)
 seeds = np.random.randint(0, 100000, NOS_SEEDS)
 seeds.sort()

@@ -24,16 +24,33 @@ class Environment:
         self.bg_size = parameters['const']['BG_SIZE']
         self.ra_size = parameters['const']['RA_SIZE']
         self.mc_size = parameters['const']['MC_SIZE']
+        self.LANDSCAPE = parameters['params']['LANDSCAPE']
         self.n_distractors = parameters['params']['N_DISTRACTORS']
         self.target_width = parameters['params']['TARGET_WIDTH']
         self.seed = seed
+        if self.LANDSCAPE == 0:
+            self.limit = 1.5
+        else:
+            self.limit = 1
         # np.random.seed(seed)
         self.model = NN(parameters, seed)
         # landscape parameters
-        self.centers = np.random.uniform(-0.9, 0.9, (self.N_SYLL, 2))
-        self.heights = np.random.uniform(0.2, 0.7, (self.N_SYLL, self.n_distractors))
-        self.means = np.random.uniform(-1, 1, (self.N_SYLL,self.n_distractors, 2))
-        self.spreads = np.random.uniform(0.1, 0.6, (self.N_SYLL, self.n_distractors))
+        if self.LANDSCAPE == 0: # ARTIFICAL LANDSCAPE
+            self.centers = np.random.uniform(-0.9, 0.9, (self.N_SYLL, 2))
+            self.heights = np.random.uniform(0.2, 0.7, (self.N_SYLL, self.n_distractors))
+            self.means = np.random.uniform(-1, 1, (self.N_SYLL,self.n_distractors, 2))
+            self.spreads = np.random.uniform(0.1, 0.6, (self.N_SYLL, self.n_distractors))
+        else: # SYRINX LANDSCAPE
+            if self.N_SYLL > 4:
+                raise ValueError('Only 4 syllables are available in the syrinx landscape')
+            self.syrinx_contours = []
+            self.syrinx_targets = []
+            for syll in range(self.N_SYLL):
+                base = np.load(f"contours/Syll{syll+1}.npy")
+                Z, target = make_contour(base)
+                self.syrinx_contours.append(Z)
+                self.syrinx_targets.append(target)
+                self.centers = np.array(self.syrinx_targets)
         # data storage
         self.rewards = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
         self.actions = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL, self.mc_size))
@@ -47,11 +64,12 @@ class Environment:
         self.bg_all = np.zeros((self.DAYS, self.TRIALS,self.N_SYLL, self.bg_size))
         self.dw_day_array = np.zeros((self.DAYS, self.N_SYLL))
         self.pot_array = np.zeros((self.DAYS, self.N_SYLL))
+        self.jump_size_array = np.zeros((self.DAYS, self.N_SYLL))
         self.RPE = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL)) 
         self.RPE_SUM = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
         
-    def get_reward(self, coordinates, syll):
-        # landscape creation and reward calculation
+        
+    def artificial_landscape(self, coordinates, syll):
         center = self.centers[syll, :]
         reward_scape = gaussian(coordinates, 1, center, self.target_width)
         if self.n_distractors == 0:
@@ -64,7 +82,25 @@ class Environment:
             spread = self.spreads[syll, i]
             hills.append(gaussian(coordinates, height, mean, spread))
         return np.maximum.reduce(hills)
-     
+    
+    def syrinx_landscape(self, coordinates, syll, n = 256):  
+        contour = self.syrinx_contours[syll]
+        target_pos = self.syrinx_targets[syll]
+        x, y = coordinates[0], coordinates[1]
+        x = max(min(x, 0.999), -1)
+        y = max(min(y, 0.999), -1)
+        x = int((x + 1) / 2 * n)
+        y = int((y + 1) / 2 * n)
+        return contour[x, y]
+
+        
+    def get_reward(self, coordinates, syll):
+        # landscape creation and reward calculation
+        if self.LANDSCAPE == False:
+            return self.artificial_landscape(coordinates, syll)
+        else:
+            return self.syrinx_landscape(coordinates, syll)
+             
     def run(self, parameters, annealing = False):
         # modes 
         self.annealing = annealing
@@ -89,7 +125,7 @@ class Environment:
             self.model.bg_influence = True
             if day >= self.DAYS-1: 
                 self.model.bg_influence = False # BG lesion on the last day
-            sum_RPE = 0
+            sum_RPE = np.zeros(self.N_SYLL)
             for iter in range(self.TRIALS):
                 for syll in range(self.N_SYLL):
                     # input from HVC is determined by the syllable
@@ -125,8 +161,8 @@ class Environment:
                         self.model.W_hvc_ra += dw_hvc_ra*(1 - self.model.W_hvc_ra)*(self.model.W_hvc_ra + 1)
                     # storing values for plotting
                     self.RPE[day, iter, syll] = reward - reward_baseline   
-                    sum_RPE += self.RPE[day, iter, syll]
-                    self.RPE_SUM[day, iter, syll] = sum_RPE
+                    sum_RPE[syll] += self.RPE[day, iter, syll]
+                    self.RPE_SUM[day, iter, syll] = sum_RPE[syll]
                     dw_day[syll] += np.mean(np.abs(dw_hvc_bg))
                     self.hvc_bg_array[day, iter, syll] = self.model.W_hvc_bg[syll,1]
                     self.bg_out[day, iter, syll] = bg[1]
@@ -151,7 +187,7 @@ class Environment:
                         potentiation_factor[syll] = 1-p 
                         # implementing night weight changes
                         night_noise = np.random.uniform(-1, 1, self.bg_size) # make it lognormal
-                        dw_night = self.learning_rate*potentiation_factor.reshape(self.hvc_size,1)*night_noise*10*self.model.bg_influence
+                        dw_night = self.learning_rate*potentiation_factor.reshape(self.hvc_size,1)*night_noise*3*self.model.bg_influence
                         self.model.W_hvc_bg += dw_night
                         self.model.W_hvc_bg = (self.model.W_hvc_bg + 1) % 2 -1 # bound between -1 and 1 in cyclical manner
                         # storing values
@@ -163,19 +199,36 @@ class Environment:
                         # an alternate way of jumping! 
                         rpe_sum_end_of_day = self.RPE_SUM[day, iter, syll]
                         potentiation_factor = 1 - sigmoid(rpe_sum_end_of_day, m = JUMP_SLOPE, a = JUMP_MID)
-                        night_noise = np.random.uniform(-1, 1, (self.hvc_size, self.bg_size))   
-                        dw_night = self.learning_rate*potentiation_factor*night_noise*JUMP_FACTOR*self.model.bg_influence
-                        W1 = self.model.W_hvc_bg + dw_night
-                        W2 = self.model.W_hvc_bg - dw_night
+                        night_noise = np.random.uniform(-1, 1, (self.bg_size))   
+                        dw_night = self.learning_rate*potentiation_factor*night_noise*100*self.model.bg_influence
+                        W1 = self.model.W_hvc_bg[syll, :] + dw_night
+                        W2 = self.model.W_hvc_bg[syll, :] - dw_night
                         indices_in_bound = (W1 <= 1) & (W1 >= -1)
-                        self.model.W_hvc_bg = W1*indices_in_bound + W2*(~indices_in_bound)
+                        self.model.W_hvc_bg[syll, :] = W1*indices_in_bound + W2*(~indices_in_bound)
+                        x = self.model.W_hvc_bg
+                        self.model.W_hvc_bg[syll, :] += dw_night
                         self.model.W_hvc_bg = (self.model.W_hvc_bg + 1) % 2 -1 # bound between -1 and 1 in cyclical manner
+                        diff = np.sum(np.abs(self.model.W_hvc_bg - x))
+                        self.jump_size_array[day, syll] = diff
                         self.pot_array[day, syll] = potentiation_factor
-                        
+                    elif WEIGHT_JUMP == 2: # something Arthur told
+                        abs_diff = np.abs(self.hvc_bg_array_all[day, -1, syll, :] - self.hvc_bg_array_all[day, 0, syll, :])
+                        # tqdm.write(f"abs_diff: {abs_diff.max()}, {abs_diff.min()}, {abs_diff.mean()}")     
+                        potentiation_factor = 1 - sigmoid(abs_diff, m = JUMP_SLOPE, a = JUMP_MID)
+                        # print(np.mean(potentiation_factor))
+                        night_noise = np.random.uniform(-1, 1, (self.bg_size))
+                        dw_night = self.learning_rate*JUMP_FACTOR*potentiation_factor[syll, :]*night_noise*self.model.bg_influence
+                        # print(np.max(dw_night), np.min(dw_night))
+                        W1 = self.model.W_hvc_bg[syll, :] + dw_night 
+                        W2 = self.model.W_hvc_bg[syll, :] - dw_night
+                        indices_in_bound = (W1 <= 1) & (W1 >= -1)
+                        self.pot_array[day, syll] = potentiation_factor[syll, 0]
+                        self.model.W_hvc_bg[syll, :] = W1*indices_in_bound + W2*(~indices_in_bound)
+
+
     def save_trajectory(self, syll):
         fig, axs = plt.subplots(figsize=(10, 9))
         # generate grid 
-        self.limit = 1.5
         x, y = np.linspace(-self.limit,self.limit, 50), np.linspace(-self.limit, self.limit, 50)
         X, Y = np.meshgrid(x, y)
         Z = self.get_reward([X, Y], syll)
@@ -204,7 +257,7 @@ class Environment:
         # plt.close()  # Close the plot to avoid memory leaks
         
     def save_results(self, syll):
-        fig, axs = plt.subplots(7, 1, figsize=(10, 15))
+        fig, axs = plt.subplots(7, 1, figsize=(10, 10))
         axs[0].plot(self.rewards[:,:,syll].reshape(self.DAYS*self.TRIALS), '.', markersize=1, linestyle='None')
         axs[0].hlines(0.7, 0, self.DAYS*self.TRIALS, colors='r', linestyles='dashed')
         axs[0].set_ylim(0, 1)
@@ -247,13 +300,14 @@ class Environment:
         JUMP_MID = parameters['params']['JUMP_MID']
         if self.annealing:
             
-            fig, axs = plt.subplots(3,1,figsize=(7, 14))
+            fig, axs = plt.subplots(3,1,figsize=(10, 5))
             expanded_dw_day_array = np.zeros((self.DAYS*self.TRIALS, self.N_SYLL)) 
             expanded_pot_array = np.zeros((self.DAYS*self.TRIALS, self.N_SYLL))
             # Expand dw_day_array and pot_array to match the size of rewards
             expanded_dw_day_array = np.repeat(self.dw_day_array[:, syll], self.DAYS*self.TRIALS// len(self.dw_day_array[:, syll]))
             expanded_dw_day = expanded_dw_day_array.reshape(self.DAYS*self.TRIALS)
             expanded_pot_array = np.repeat(self.pot_array[:, syll], self.DAYS*self.TRIALS// len(self.pot_array[:, syll]))
+            expanded_jump_size_array = np.repeat(self.jump_size_array[:, syll], self.DAYS*self.TRIALS// len(self.jump_size_array[:, syll]))
             fig.suptitle(f'Annealing SEED:{self.seed} syllable: {syll}')
             # axs[0].plot(expanded_dw_day_array, markersize=1, label='dW_day')
             # axs[0].plot(ANNEALING_MID*np.ones((self.DAYS*self.TRIALS)), label = 'Threshold')
@@ -261,8 +315,10 @@ class Environment:
             # axs[0].set_ylim(0,4) 
             # axs[0].legend()
             axs[0].plot(expanded_pot_array, markersize=1, label='Potentiation factor')
+            axs[0].plot(expanded_jump_size_array/50, markersize=1, label='Size of night jump') 
             axs[0].set_ylabel('Size of night jump')
-            axs[0].set_ylim(0, 1)
+            axs[0].legend()
+            axs[0].set_ylim(0, 2)
             axs[1].plot(self.rewards[:,:,syll].reshape(self.DAYS*self.TRIALS), '.', markersize=1, label='Reward', alpha = 0.05)
             axs[1].set_ylabel('Rewards')
             axs[1].set_ylim(0, 1)
@@ -278,6 +334,46 @@ class Environment:
             plt.show()
             # plt.savefig(os.path.join(save_dir, f"dw_day_{self.seed}_{syll}.png"))   
             # plt.close()
+
+def plot_trajectory(obj, syll):
+    fig, axs = plt.subplots(figsize=(10, 9))
+    cmap = LinearSegmentedColormap.from_list('white_to_black', ['white', 'black'])
+    if obj.LANDSCAPE == 0: # artificial landscape
+        x_traj, y_traj = zip(*obj.actions[:,:, syll,:].reshape(-1, 2))
+        limit = obj.limit
+        print(limit)
+        x, y = np.linspace(-limit, limit, 50), np.linspace(-limit, limit, 50)
+        X, Y = np.meshgrid(x, y)
+        Z = obj.get_reward([X, Y], syll)
+        contour = axs.contourf(X, Y, Z, levels=10, cmap=cmap)
+        fig.colorbar(contour, ax=axs, label='Reward')
+        # # plot trajectory
+        # axs.plot(x_traj[::10], y_traj[::10], 'yell ow', label='Agent Trajectory', alpha = 0.1, marker = ".", linewidth = 0.1, markersize = 0.99) # Plot every 20th point for efficiency
+        # axs.scatter(x_traj[0], y_traj[0], s=100, c='blue', label='Starting Point', marker = 'x')  # type: ignore # Plot first point as red circle
+        # axs.scatter(x_traj[-1001], y_traj[-1001], s=100, c='pink', marker='x', label='Before Lesion Ending Point')
+        # axs.scatter(x_traj[-5:], y_traj[-5:], s=100, c='r', marker='x', label='After Leison Point') # type: ignore
+        axs.scatter(obj.centers[syll, 0], obj.centers[syll, 1], s=100, c='green', marker='x', label='target')  # type: ignore
+    else: 
+        Z = obj.syrinx_contours[syll]
+        target_pos = obj.syrinx_targets[syll]
+        cs = plt.contourf(Z, cmap=cmap, extent=[-1, 1, -1, 1])
+        fig.colorbar(cs, ax=axs, label='Reward')
+        axs.scatter(target_pos[0], target_pos[1], s=100, c='green', marker='x', label='target')  # type: ignore
+        # plot trajectory
+    x_traj, y_traj = zip(*obj.actions[:,:, syll,:].reshape(-1, 2))
+    axs.plot(x_traj[::10], y_traj[::10], 'yellow', label='Agent Trajectory', alpha = 0.5, linewidth = 0.1, marker='.', markersize = 0.99) # Plot every 20th point for efficiency
+    axs.scatter(x_traj[0], y_traj[0], s=100, c='blue', label='Starting Point', marker = 'x')  # type: ignore # Plot first point as red circle
+    axs.scatter(x_traj[-1001], y_traj[-1001], s=200, c='pink', marker='o', label='Before Lesion Ending Point')
+    axs.scatter(x_traj[-1], y_traj[-1], s=200, c='r', marker='x', label='Ending Point') # type: ignore
+    
+
+    # labels
+    axs.set_title(f'Contour plot of reward function SEED:{RANDOM_SEED} syllable: {syll}', fontsize = 15) # type: ignore 
+    axs.set_ylabel(r'$P_{\alpha}$')
+    axs.set_xlabel(r'$P_{\beta}$')
+    axs.legend()
+    plt.tight_layout()
+    plt.show()
             
 def build_and_run(seed, annealing, plot, parameters, NN):
     N_SYLL = parameters['params']['N_SYLL']
@@ -285,11 +381,12 @@ def build_and_run(seed, annealing, plot, parameters, NN):
     TRIALS = parameters['params']['TRIALS']
     tqdm.write(f" Random seed is {seed}")
     np.random.seed(seed)
+    if plot:
+        remove_prev_files()
     env = Environment(seed, parameters, NN)
     env.run(parameters, annealing)
     for i in range(N_SYLL):
         if plot:
-            remove_prev_files()
             env.save_trajectory(i)
             env.save_results(i)
             if annealing:
