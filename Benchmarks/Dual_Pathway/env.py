@@ -84,6 +84,7 @@ class Environment:
         HARD_BOUND = parameters['params']['HARD_BOUND']
 
         # each day, 1000 trial, n_syll syllables
+        trial_no = 0
         for day in tqdm(range(self.DAYS)):
             dw_day = np.zeros(self.N_SYLL)
             self.model.bg_influence = True
@@ -136,7 +137,7 @@ class Environment:
                     self.ra_all[day, iter, syll, :] = ra
                     self.hvc_bg_array_all[day, iter, syll, :] = self.model.W_hvc_bg[syll,:]
                     self.bg_all[day, iter, syll, :] = bg
-
+                    trial_no += 1
             # Annealing
             if self.annealing:
                 for syll in range(self.N_SYLL):
@@ -296,7 +297,7 @@ def build_and_run(seed, annealing, plot, parameters, NN):
                 env.save_dw_day(i)
         rewards = env.rewards[:,:,0].reshape(env.DAYS*env.TRIALS)
         # return rewards after lesion and before lesion 
-    return np.mean(rewards[-100:], axis=0), np.mean(rewards[(DAYS-1)*TRIALS-100:(DAYS-1)*TRIALS], axis=0)
+    return np.mean(rewards[(DAYS-1)*TRIALS-100:(DAYS-1)*TRIALS], axis=0)
 
 
 # load parameters from json file
