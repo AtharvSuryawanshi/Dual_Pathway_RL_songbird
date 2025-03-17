@@ -61,10 +61,12 @@ class NN:
         BG_sig_MID = parameters['params']['BG_sig_MID']
         RA_sig_MID = parameters['params']['RA_sig_MID']
         HEBBIAN_LEARNING = parameters['params']['HEBBIAN_LEARNING']
+        DECAY_FACTOR = parameters['params']['DECAY_FACTOR']
         balance_factor = parameters['params']['balance_factor']
         # count number of 1 in hvc, divide bg by that number
         num_ones = np.count_nonzero(hvc_array == 1)
-        self.bg = new_sigmoid(np.dot(hvc_array/num_ones, self.W_hvc_bg) + np.random.normal(0, BG_NOISE, self.bg_size), m = BG_SIG_SLOPE, a = BG_sig_MID)
+        bg_noise = BG_NOISE
+        self.bg = new_sigmoid(np.dot(hvc_array/num_ones, self.W_hvc_bg) + np.random.normal(0, bg_noise, self.bg_size), m = BG_SIG_SLOPE, a = BG_sig_MID)
         self.ra = new_sigmoid(np.dot(self.bg, self.W_bg_ra/np.sum(self.W_bg_ra, axis=0)) * balance_factor * self.bg_influence + np.dot(hvc_array/num_ones, self.W_hvc_ra)* HEBBIAN_LEARNING + np.random.normal(0, RA_NOISE, self.ra_size)* HEBBIAN_LEARNING, m = RA_SIG_SLOPE, a = RA_sig_MID) 
         self.mc = self.limit*np.dot(self.ra, self.W_ra_mc/np.sum(self.W_ra_mc, axis=0)) # outputs to +-0.50
         return self.mc, self.ra, self.bg
