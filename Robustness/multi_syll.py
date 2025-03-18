@@ -18,7 +18,12 @@ if os.path.exists("multi_syll_robust.npy"):
 def run_mutli_syll_robust(state, nos_seeds, parameters, NN):
     np.random.seed(state)
     N_SYLL = parameters['params']['N_SYLL']
-    time_per_iter = 6
+    if N_SYLL == 1:
+        raise Warning("Only one syllable, are you sure?")
+    LANDSCAPE = parameters['params']['LANDSCAPE']
+    if LANDSCAPE == 0:
+        raise Warning("LANDSCAPE is 0, are you sure?")  
+    time_per_iter = 7
     total_time = time_per_iter * nos_seeds * N_SYLL
     print(f"Total time: {total_time/60} minutes")
     total_returns = np.zeros((nos_seeds, 2, 4))
