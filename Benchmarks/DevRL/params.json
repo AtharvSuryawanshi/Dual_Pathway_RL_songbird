@@ -28,7 +28,7 @@
 
     "LANDSCAPE": 0,
     "N_DISTRACTORS": 10,
-    "TARGET_WIDTH": 0.4,
+    "TARGET_WIDTH": 0.3,
 
     "LEARNING_RATE_RL": 0.2,
     "LEARNING_RATE_HL": 0,

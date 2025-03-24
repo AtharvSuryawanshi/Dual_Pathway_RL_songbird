@@ -17,7 +17,7 @@ state = 5
 np.random.seed(state)
 seeds = np.random.randint(0, 100000, NOS_SEEDS)
 seeds.sort()
-wanted_directories = ["BG_NOISE","DECAY_FACTOR"]                         
+wanted_directories = ["BG_NOISE"]                         
 neighboring_directories = find_neighboring_directories()
 for directory in neighboring_directories:
     if directory in wanted_directories:

@@ -13,7 +13,7 @@ import time
 
 NOS_SEEDS = 100
 time_per_iter = 7.52
-state = 2
+state = 5
 np.random.seed(state)
 seeds = np.random.randint(0, 100000, NOS_SEEDS)
 seeds.sort()
