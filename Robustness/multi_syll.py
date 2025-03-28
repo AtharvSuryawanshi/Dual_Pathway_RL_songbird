@@ -1,5 +1,5 @@
-from env_figs import Environment
-from env_figs import build_and_run
+from Dual_Pathway_RL_songbird.Robustness.env_robust import Environment
+from Dual_Pathway_RL_songbird.Robustness.env_robust import build_and_run
 from model import NN
 import json
 import os

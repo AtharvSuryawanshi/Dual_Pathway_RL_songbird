@@ -21,6 +21,7 @@ class Environment:
         self.n_distractors = parameters['params']['N_DISTRACTORS']
         self.target_width = parameters['params']['TARGET_WIDTH']
         self.seed = seed
+        np.random.seed(seed)
         if self.LANDSCAPE == 0:
             self.limit = 1.5
         else:
@@ -48,10 +49,10 @@ class Environment:
         self.rewards = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
         self.actions = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL, self.mc_size))
         self.hvc_bg_array = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
-        self.hvc_bg_array_all = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL, self.hvc_size, self.bg_size))   
+        # self.hvc_bg_array_all = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL, self.hvc_size, self.bg_size))   
         self.bg_out = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
         self.hvc_ra_array = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
-        self.hvc_ra_array_all = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL, self.hvc_size, self.ra_size)) 
+        # self.hvc_ra_array_all = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL, self.hvc_size, self.ra_size)) 
         self.ra_out = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
         self.ra_all = np.zeros((self.DAYS, self.TRIALS,self.N_SYLL, self.ra_size))
         self.bg_all = np.zeros((self.DAYS, self.TRIALS,self.N_SYLL, self.bg_size))
@@ -163,10 +164,14 @@ class Environment:
                     self.hvc_bg_array[day, iter, syll] = self.model.W_hvc_bg[syll,1]
                     self.bg_out[day, iter, syll] = bg[1]
                     self.hvc_ra_array[day, iter, syll] = self.model.W_hvc_ra[syll,1]
-                    self.hvc_ra_array_all[day, iter, syll, :] = self.model.W_hvc_ra[syll,:]
+                    # self.hvc_ra_array_all[day, iter, syll, :] = self.model.W_hvc_ra[syll,:]
+                    if iter == 0:
+                        hvc_bg_start = self.model.W_hvc_bg
+                    if iter == self.TRIALS-1:
+                        hvc_bg_end = self.model.W_hvc_bg 
                     self.ra_out[day, iter, syll] = ra[0]
                     self.ra_all[day, iter, syll, :] = ra
-                    self.hvc_bg_array_all[day, iter, syll, :] = self.model.W_hvc_bg[syll,:]
+                    # self.hvc_bg_array_all[day, iter, syll, :] = self.model.W_hvc_bg[syll,:]
                     self.bg_all[day, iter, syll, :] = bg
                     self.dist_from_target[day, iter, syll] = np.linalg.norm(action - self.centers[syll, :]) 
 
@@ -209,7 +214,9 @@ class Environment:
                         self.jump_size_array[day, syll] = diff
                         self.pot_array[day, syll] = potentiation_factor
                     elif WEIGHT_JUMP == 2: # something Arthur told
-                        abs_diff = np.abs(self.hvc_bg_array_all[day, -1, syll, :] - self.hvc_bg_array_all[day, 0, syll, :])
+                        # print(hvc_bg_end[:, :].shape)
+                        abs_diff = np.abs(hvc_bg_end[:, :] - hvc_bg_start[:, :])  
+                        # abs_diff = np.abs(self.hvc_bg_array_all[day, -1, syll, :] - self.hvc_bg_array_all[day, 0, syll, :])
                         potentiation_factor = 1 - sigmoid(abs_diff, m = JUMP_SLOPE, a = JUMP_MID)
                         night_noise = np.random.uniform(-1, 1, (self.bg_size))
                         dw_night = self.learning_rate*JUMP_FACTOR*potentiation_factor[syll, :]*night_noise*self.model.bg_influence
