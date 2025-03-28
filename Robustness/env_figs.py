@@ -61,6 +61,7 @@ class Environment:
         self.RPE = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL)) 
         self.RPE_SUM = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
         self.potentiation_factor_all = np.zeros((self.DAYS, self.N_SYLL, self.hvc_size, self.bg_size))
+        self.dist_from_target = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL)) 
 
         
         
@@ -167,6 +168,7 @@ class Environment:
                     self.ra_all[day, iter, syll, :] = ra
                     self.hvc_bg_array_all[day, iter, syll, :] = self.model.W_hvc_bg[syll,:]
                     self.bg_all[day, iter, syll, :] = bg
+                    self.dist_from_target[day, iter, syll] = np.linalg.norm(action - self.centers[syll, :]) 
 
             # Annealing
             if self.annealing:
