@@ -21,8 +21,8 @@ def run_mutli_syll_robust(state, nos_seeds, parameters, NN):
     if N_SYLL == 1:
         raise Warning("Only one syllable, are you sure?")
     LANDSCAPE = parameters['params']['LANDSCAPE']
-    if LANDSCAPE == 0:
-        raise Warning("LANDSCAPE is 0, are you sure?")  
+    # if LANDSCAPE == 0:
+    #     raise Warning("LANDSCAPE is 0, are you sure?")  
     time_per_iter = 7
     total_time = time_per_iter * nos_seeds * N_SYLL
     print(f"Total time: {total_time/60} minutes")
@@ -40,7 +40,7 @@ def run_mutli_syll_robust(state, nos_seeds, parameters, NN):
     return total_returns
 
 nos_seeds = 25
-state = 4
+state = 5
 total_returns = run_mutli_syll_robust(state, nos_seeds, parameters, NN)
 
 np.save("multi_syll_robust.npy", total_returns)
