@@ -16,6 +16,7 @@ class Environment:
     def __init__(self, seed, parameters, NN):
         # setting parameters
         self.DAYS = parameters['params']['DAYS']
+        self.BG_INTACT_DAYS = parameters['params']['BG_INTACT_DAYS']    
         self.TRIALS = parameters['params']['TRIALS']
         self.N_SYLL = parameters['params']['N_SYLL']
         if self.N_SYLL > 1:
@@ -123,7 +124,7 @@ class Environment:
         for day in tqdm(range(self.DAYS)):
             dw_day = np.zeros(self.N_SYLL)
             self.model.bg_influence = True
-            if day >= self.DAYS-1: 
+            if day >= self.BG_INTACT_DAYS: 
                 self.model.bg_influence = False # BG lesion on the last day
             sum_RPE = np.zeros(self.N_SYLL)
             for iter in range(self.TRIALS):
