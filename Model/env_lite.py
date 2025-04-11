@@ -50,13 +50,20 @@ class Environment:
         self.rewards = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
         self.actions = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL, self.mc_size))
         self.hvc_bg_array = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
-        # self.hvc_bg_array_all = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL, self.hvc_size, self.bg_size))   
-        self.bg_out = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
         self.hvc_ra_array = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
+
+        # self.hvc_bg_array_all = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL, self.hvc_size, self.bg_size))   
         # self.hvc_ra_array_all = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL, self.hvc_size, self.ra_size)) 
+        self.hvc_bg_array_all = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL, 10))   
+        self.hvc_ra_array_all = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL, 10)) 
+        
+        self.bg_out = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
         self.ra_out = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
+
         # self.ra_all = np.zeros((self.DAYS, self.TRIALS,self.N_SYLL, self.ra_size))
         # self.bg_all = np.zeros((self.DAYS, self.TRIALS,self.N_SYLL, self.bg_size))
+        self.ra_all = np.zeros((self.DAYS, self.TRIALS,self.N_SYLL, 10))
+        self.bg_all = np.zeros((self.DAYS, self.TRIALS,self.N_SYLL, 10))
         self.dw_day_array = np.zeros((self.DAYS, self.N_SYLL))
         self.pot_array = np.zeros((self.DAYS, self.N_SYLL))
         self.jump_size_array = np.zeros((self.DAYS, self.N_SYLL))
@@ -165,15 +172,15 @@ class Environment:
                     self.hvc_bg_array[day, iter, syll] = self.model.W_hvc_bg[syll,1]
                     self.bg_out[day, iter, syll] = bg[1]
                     self.hvc_ra_array[day, iter, syll] = self.model.W_hvc_ra[syll,1]
-                    # self.hvc_ra_array_all[day, iter, syll, :] = self.model.W_hvc_ra[syll,:]
+                    self.hvc_ra_array_all[day, iter, syll, :] = self.model.W_hvc_ra[syll,:10]
+                    self.hvc_bg_array_all[day, iter, syll, :] = self.model.W_hvc_bg[syll,:10]
                     if iter == 0:
                         hvc_bg_start = self.model.W_hvc_bg
                     if iter == self.TRIALS-1:
                         hvc_bg_end = self.model.W_hvc_bg 
                     self.ra_out[day, iter, syll] = ra[0]
-                    # self.ra_all[day, iter, syll, :] = ra
-                    # self.hvc_bg_array_all[day, iter, syll, :] = self.model.W_hvc_bg[syll,:]
-                    # self.bg_all[day, iter, syll, :] = bg
+                    self.ra_all[day, iter, syll, :] = ra[:10]
+                    self.bg_all[day, iter, syll, :] = bg[:10]
                     self.dist_from_target[day, iter, syll] = np.linalg.norm(action - self.centers[syll, :]) 
 
             # Annealing
