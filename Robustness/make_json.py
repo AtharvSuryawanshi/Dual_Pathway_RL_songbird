@@ -73,6 +73,7 @@ JUMP_MID_values = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
 JUMP_SLOPE_values = [1,10,20,50, 100]
 JUMP_FACTOR_values = [0.5, 1, 2, 2.5, 3, 3.5, 4, 5]
 balance_factor_values = [1, 1.5, 2, 2.5, 3]
+BG_INTACT_DAYS_values = [20, 40, 60]
 
 
 
@@ -97,6 +98,7 @@ parameter_names = {
     "JUMP_SLOPE": JUMP_SLOPE_values,
     "JUMP_FACTOR": JUMP_FACTOR_values,
     "balance_factor": balance_factor_values,
+    "BG_INTACT_DAYS": BG_INTACT_DAYS_values,
 }
 
 filename = "params.json"
