@@ -11,7 +11,7 @@ from env_robust import build_and_run
 from functions import find_neighboring_directories
 import time 
 
-NOS_SEEDS = 2
+NOS_SEEDS = 10
 time_per_iter = 7.52
 state = 5
 np.random.seed(state)
