@@ -2,3 +2,4 @@
 **/*.pyc
 Robustness/**/parameters_*.json
 Benchmarks/**/**/parameters_*.json
+Model/model.pkl
