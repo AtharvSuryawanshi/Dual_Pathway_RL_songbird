@@ -49,10 +49,10 @@ class Environment:
         self.rewards = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
         self.actions = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL, self.mc_size))
         self.hvc_bg_array = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
-        self.hvc_bg_array_all = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL, self.hvc_size, self.bg_size))   
-        self.bg_out = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
         self.hvc_ra_array = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
+        self.hvc_bg_array_all = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL, self.hvc_size, self.bg_size))
         self.hvc_ra_array_all = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL, self.hvc_size, self.ra_size)) 
+        self.bg_out = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
         self.ra_out = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
         self.ra_all = np.zeros((self.DAYS, self.TRIALS,self.N_SYLL, self.ra_size))
         self.bg_all = np.zeros((self.DAYS, self.TRIALS,self.N_SYLL, self.bg_size))
@@ -164,10 +164,10 @@ class Environment:
                     self.hvc_bg_array[day, iter, syll] = self.model.W_hvc_bg[syll,1]
                     self.bg_out[day, iter, syll] = bg[1]
                     self.hvc_ra_array[day, iter, syll] = self.model.W_hvc_ra[syll,1]
-                    self.hvc_ra_array_all[day, iter, syll, :] = self.model.W_hvc_ra[syll,:]
+                    self.hvc_ra_array_all[day, iter, syll, :,:] = self.model.W_hvc_ra[:,:]
+                    self.hvc_bg_array_all[day, iter, syll, :,:] = self.model.W_hvc_bg[:,:]
                     self.ra_out[day, iter, syll] = ra[0]
                     self.ra_all[day, iter, syll, :] = ra
-                    self.hvc_bg_array_all[day, iter, syll, :] = self.model.W_hvc_bg[syll,:]
                     self.bg_all[day, iter, syll, :] = bg
                     self.dist_from_target[day, iter, syll] = np.linalg.norm(action - self.centers[syll, :]) 
 
@@ -210,7 +210,7 @@ class Environment:
                         self.jump_size_array[day, syll] = diff
                         self.pot_array[day, syll] = potentiation_factor
                     elif WEIGHT_JUMP == 2: # something Arthur told
-                        abs_diff = np.abs(self.hvc_bg_array_all[day, -1, syll, :] - self.hvc_bg_array_all[day, 0, syll, :])
+                        abs_diff = np.abs(self.hvc_bg_array_all[day, -1, syll, :,:] - self.hvc_bg_array_all[day, 0, syll, :,:])
                         potentiation_factor = 1 - sigmoid(abs_diff, m = JUMP_SLOPE, a = JUMP_MID)
                         night_noise = np.random.uniform(-1, 1, (self.bg_size))
                         dw_night = self.learning_rate*JUMP_FACTOR*potentiation_factor[syll, :]*night_noise*self.model.bg_influence
@@ -395,10 +395,10 @@ def build_and_run(seed, annealing, plot, parameters, NN):
 
 # load parameters from json file
 params_path = "params.json"
-# Open the file and read the contents
-with open(params_path, "r") as f:
-    parameters = json.load(f)
-# running conditions
+# # Open the file and read the contents
+# with open(params_path, "r") as f:
+#     parameters = json.load(f)
+# # running conditions
 # env = Environment(629, parameters, NN)
 # env.run(parameters, True)
 # remove_prev_files()
