@@ -48,13 +48,14 @@ class Environment:
         # data storage
         self.rewards = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
         self.actions = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL, self.mc_size))
+        self.actions_bg = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL, self.mc_size))
         self.hvc_bg_array = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
         self.hvc_ra_array = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
 
         # self.hvc_bg_array_all = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL, self.hvc_size, self.bg_size))   
         # self.hvc_ra_array_all = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL, self.hvc_size, self.ra_size)) 
         self.hvc_bg_array_all = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL, 8))   
-        self.hvc_ra_array_all = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL, 8)) 
+        self.hvc_ra_array_all = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL, 8))
         
         self.bg_out = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
         self.ra_out = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
@@ -69,7 +70,7 @@ class Environment:
         self.RPE = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL)) 
         self.RPE_SUM = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
         self.potentiation_factor_all = np.zeros((self.DAYS, self.N_SYLL, self.hvc_size, self.bg_size))
-        self.dist_from_target = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL)) 
+        self.dist_from_target = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
 
         
         
@@ -136,10 +137,11 @@ class Environment:
                     input_hvc = np.zeros(self.hvc_size)
                     input_hvc[syll] = 1
                     # reward, action and baseline
-                    action, ra, bg = self.model.forward(input_hvc, parameters)
+                    action, ra, bg, action_bg = self.model.forward(input_hvc, parameters)
                     reward = self.get_reward(action, syll)
                     self.rewards[day, iter, syll] = reward
                     self.actions[day, iter, syll,:] = action
+                    self.actions_bg[day, iter, syll,:] = action_bg  
                     reward_baseline = 0
                     if iter < REWARD_WINDOW and iter > 0:
                         reward_baseline = np.mean(self.rewards[day, :iter, syll])
