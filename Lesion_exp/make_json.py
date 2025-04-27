@@ -73,7 +73,7 @@ JUMP_MID_values = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
 JUMP_SLOPE_values = [1,10,20,50, 100]
 JUMP_FACTOR_values = [0.5, 1, 2, 2.5, 3, 3.5, 4, 5]
 balance_factor_values = [1, 1.5, 2, 2.5, 3]
-BG_INTACT_DAYS_values = [20, 40, 60]
+BG_INTACT_DAYS_values = [10, 20, 30, 40, 50, 60]
 
 
 

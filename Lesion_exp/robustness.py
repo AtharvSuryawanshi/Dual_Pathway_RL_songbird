@@ -11,13 +11,13 @@ from env_lite import build_and_run
 from functions import find_neighboring_directories
 import time 
 
-NOS_SEEDS = 20
-time_per_iter = 7.52
+NOS_SEEDS = 50
+time_per_iter = 5.5
 state = 5
 np.random.seed(state)
 seeds = np.random.randint(0, 100000, NOS_SEEDS)
 seeds.sort()
-wanted_directories = ["ANNEALING"] #["BG_NOISE", "RA_NOISE", "LEARNING_RATE_RL", "REWARD_WINDOW", "LEARNING_RATE_HL","TARGET_WIDTH","ANNEALING", "JUMP_MID", "JUMP_SLOPE", "JUMP_FACTOR", "RA_SIG_SLOPE", "balance_factor"]#["ANNEALING", "BG_NOISE", "LEARNING_RATE_HL", "LEARNING_RATE_RL", "RA_NOISE", "N_BG_CLUSTERS", "N_DISTRACTORS", "REWARD_WINDOW", "TARGET_WIDTH"]                                       
+wanted_directories = ["BG_INTACT_DAYS"] #["BG_NOISE", "RA_NOISE", "LEARNING_RATE_RL", "REWARD_WINDOW", "LEARNING_RATE_HL","TARGET_WIDTH","ANNEALING", "JUMP_MID", "JUMP_SLOPE", "JUMP_FACTOR", "RA_SIG_SLOPE", "balance_factor"]#["ANNEALING", "BG_NOISE", "LEARNING_RATE_HL", "LEARNING_RATE_RL", "RA_NOISE", "N_BG_CLUSTERS", "N_DISTRACTORS", "REWARD_WINDOW", "TARGET_WIDTH"]                                       
 neighboring_directories = find_neighboring_directories()
 for directory in neighboring_directories:
     if directory in wanted_directories:
@@ -60,8 +60,9 @@ for directory in neighboring_directories:
                 nos_parameters += 1
         print(f"Number of parameters: {nos_parameters} for directory {directory}")
 
-        overall_returns_cutoff = np.zeros((NOS_SEEDS, nos_parameters))
-        overall_returns_nocutoff = np.zeros((NOS_SEEDS, nos_parameters))
+        overall_returns_b4cutoff = np.zeros((NOS_SEEDS, nos_parameters))
+        overall_returns_aftercutoff = np.zeros((NOS_SEEDS, nos_parameters))
+        overall_returns_end = np.zeros((NOS_SEEDS, nos_parameters))
         parameter_values = np.zeros(nos_parameters)
         j = 0
         for potential_filename in os.listdir(directory):
@@ -88,11 +89,14 @@ for directory in neighboring_directories:
                         returns_b4cutoff[i], returns_aftercutoff[i], returns_end[i] = build_and_run(seed, annealing=annealing_val, plot=False, parameters=parameters, NN=NN)
                         print(F"Seed: {seed} with index {i} and returns: {returns_b4cutoff[i]}, {returns_aftercutoff[i]}, {returns_end[i]}")
                         print(f"Time remaining now: {np.round((time_remaining_in_s - elapsed_time) / 60, 2)} minutes")
-                    overall_returns_cutoff[:, j] = returns_cutoff
-                    overall_returns_nocutoff[:, j] = returns_nocutoff
+                    overall_returns_b4cutoff[:, j] = returns_b4cutoff
+                    overall_returns_aftercutoff[:, j] = returns_aftercutoff
+                    overall_returns_end[:, j] = returns_end
+                    # overall_returns_cutoff[:, j] = returns_cutoff
+                    # overall_returns_nocutoff[:, j] = returns_nocutoff
                     parameter_values[j] = param
                     j += 1
-
-        np.save(f"{directory}/overall_returns_cutoff.npy", overall_returns_cutoff)
-        np.save(f"{directory}/overall_returns_nocutoff.npy", overall_returns_nocutoff)
+        np.save(f"{directory}/overall_returns_b4cutoff.npy", overall_returns_b4cutoff)
+        np.save(f"{directory}/overall_returns_aftercutoff.npy", overall_returns_aftercutoff)
+        np.save(f"{directory}/overall_returns_end.npy", overall_returns_end)
         np.save(f"{directory}/parameter_values.npy", parameter_values)

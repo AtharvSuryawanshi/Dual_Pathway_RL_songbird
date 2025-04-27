@@ -404,7 +404,7 @@ def build_and_run(seed, annealing, plot, parameters, NN):
                 env.save_dw_day(i)
         rewards = env.rewards[:,:,0].reshape(env.DAYS*env.TRIALS)
         # return rewards after lesion and before lesion 
-    return np.mean(rewards[(BG_INTACT_DAYS)*TRIALS-100:(BG_INTACT_DAYS)*TRIALS], axis=0), np.mean(rewards[(BG_INTACT_DAYS)*TRIALS:(BG_INTACT_DAYS)*TRIALS+100], axis=0), np.mean(rewards[-100:], axis=0), rewards
+    return np.mean(rewards[(BG_INTACT_DAYS)*TRIALS-100:(BG_INTACT_DAYS)*TRIALS], axis=0), np.mean(rewards[(BG_INTACT_DAYS)*TRIALS:(BG_INTACT_DAYS)*TRIALS+100], axis=0), np.mean(rewards[-100:], axis=0)
 
 
 # load parameters from json file
