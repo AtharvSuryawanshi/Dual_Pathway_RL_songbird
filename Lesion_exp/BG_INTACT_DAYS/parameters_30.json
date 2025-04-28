@@ -19,7 +19,7 @@
     "HARD_BOUND": 0,
     "REWARD_WINDOW": 10,
     "BG_NOISE": 0.1,
-    "RA_NOISE": 0.0,
+    "RA_NOISE": 0.01,
     "LANDSCAPE": 0,
     "N_DISTRACTORS": 10,
     "TARGET_WIDTH": 0.3,
