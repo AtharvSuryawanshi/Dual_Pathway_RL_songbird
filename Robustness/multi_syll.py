@@ -1,5 +1,5 @@
-from Dual_Pathway_RL_songbird.Robustness.env_robust import Environment
-from Dual_Pathway_RL_songbird.Robustness.env_robust import build_and_run
+from env_lite import Environment
+# from env import build_and_run
 from model import NN
 import json
 import os
@@ -39,7 +39,7 @@ def run_mutli_syll_robust(state, nos_seeds, parameters, NN):
         print(f"Time remaining: {np.round((total_time - (i+1) * time_per_iter*N_SYLL) / 60, 2)} minutes")
     return total_returns
 
-nos_seeds = 25
+nos_seeds = 10
 state = 5
 total_returns = run_mutli_syll_robust(state, nos_seeds, parameters, NN)
 
