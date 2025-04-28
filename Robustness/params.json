@@ -24,7 +24,7 @@
     "REWARD_WINDOW": 10,
 
     "BG_NOISE": 0.1,
-    "RA_NOISE": 0.00,
+    "RA_NOISE": 0.01,
 
     "LANDSCAPE": 0,
     "N_DISTRACTORS": 10,

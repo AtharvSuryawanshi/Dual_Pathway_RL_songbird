@@ -56,7 +56,7 @@ for directory in neighboring_directories:
 # Define parameter values
 BG_NOISE_values = [0.05, 0.075, 0.1, 0.15, 0.2]
 RA_NOISE_values = [0, 0.01, 0.02, 0.05, 0.1]
-LEARNING_RATE_RL_values = [0.05, 0.1, 0.2, 0.4, 0.5]
+LEARNING_RATE_RL_values = [0.1, 0.15, 0.2, 0.25, 0.3]
 LEARNING_RATE_HL_values = [0, 1e-5, 2e-5, 3e-5, 5e-5, 1e-4]
 N_BG_CLUSTERS_values = [2, 10]
 N_DISTRACTORS_values = [5, 10, 20, 50]
