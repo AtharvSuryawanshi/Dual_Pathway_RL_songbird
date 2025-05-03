@@ -180,7 +180,7 @@ class Environment:
                     if iter == self.TRIALS-1:
                         hvc_bg_end = self.model.W_hvc_bg.copy()
                     self.ra_out[day, iter, syll] = ra[0]
-                    self.ra_all[day, iter, syll, :] = ra[:8]
+                    self.ra_all[day, iter, syll, :] = np.concatenate([ra[:4], ra[-4:]])
                     self.bg_all[day, iter, syll, :] = bg[:8]
                     self.dist_from_target[day, iter, syll] = np.linalg.norm(action - self.centers[syll, :]) 
 
