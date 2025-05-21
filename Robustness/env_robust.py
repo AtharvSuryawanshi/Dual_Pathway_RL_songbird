@@ -396,8 +396,8 @@ def build_and_run(seed, annealing, plot, parameters, NN):
 # load parameters from json file
 params_path = "params.json"
 # # Open the file and read the contents
-# with open(params_path, "r") as f:
-#     parameters = json.load(f)
+with open(params_path, "r") as f:
+    parameters = json.load(f)
 # # running conditions
 # env = Environment(629, parameters, NN)
 # env.run(parameters, True)
