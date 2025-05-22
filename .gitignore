@@ -3,3 +3,4 @@
 Robustness/**/parameters_*.json
 Benchmarks/**/**/parameters_*.json
 Model/model.pkl
+Model/model20.pkl
