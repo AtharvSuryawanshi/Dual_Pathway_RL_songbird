@@ -2,7 +2,7 @@
   "params": 
   {
     "TRIALS": 1000,
-    "DAYS": 61,
+    "DAYS": 70,
     "BG_INTACT_DAYS": 60,
     "N_SYLL": 4,
     
