@@ -1,5 +1,6 @@
 **/__pycache__/
 **/*.pyc
 Robustness/**/parameters_*.json
+Lesion_exp/**/parameters_*.json
 Benchmarks/**/**/parameters_*.json
 Model/model**.pkl
