@@ -22,7 +22,7 @@ class Environment:
         self.n_distractors = parameters['params']['N_DISTRACTORS']
         self.target_width = parameters['params']['TARGET_WIDTH']
         self.seed = seed
-        # np.random.seed(seed)
+        np.random.seed(seed)
         if self.LANDSCAPE == 0:
             self.limit = 1.5
         else:
