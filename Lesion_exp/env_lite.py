@@ -11,7 +11,8 @@ class Environment:
     def __init__(self, seed, parameters, NN):
         # setting parameters
         self.DAYS = parameters['params']['DAYS']
-        self.BG_INTACT_DAYS = parameters['params']['BG_INTACT_DAYS']    
+        self.BG_INTACT_DAYS = parameters['params']['BG_INTACT_DAYS']
+        self.HEARING_INTACT_DAYS = parameters['params']['HEARING_INTACT_DAYS']
         self.TRIALS = parameters['params']['TRIALS']
         self.N_SYLL = parameters['params']['N_SYLL']
         self.hvc_size = parameters['const']['HVC_SIZE']

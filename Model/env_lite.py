@@ -11,7 +11,8 @@ class Environment:
     def __init__(self, seed, parameters, NN):
         # setting parameters
         self.DAYS = parameters['params']['DAYS']
-        self.BG_INTACT_DAYS = parameters['params']['BG_INTACT_DAYS']    
+        self.BG_INTACT_DAYS = parameters['params']['BG_INTACT_DAYS']
+        self.HEARING_INTACT_DAYS = parameters['params']['HEARING_INTACT_DAYS']
         self.TRIALS = parameters['params']['TRIALS']
         self.N_SYLL = parameters['params']['N_SYLL']
         self.hvc_size = parameters['const']['HVC_SIZE']
@@ -138,7 +139,10 @@ class Environment:
                     input_hvc[syll] = 1
                     # reward, action and baseline
                     action, ra, bg, action_bg = self.model.forward(input_hvc, parameters)
-                    reward = self.get_reward(action, syll)
+                    if day < self.HEARING_INTACT_DAYS: 
+                        reward = self.get_reward(action, syll)
+                    else:
+                        reward = 0
                     self.rewards[day, iter, syll] = reward
                     self.actions[day, iter, syll,:] = action
                     self.actions_bg[day, iter, syll,:] = action_bg  
