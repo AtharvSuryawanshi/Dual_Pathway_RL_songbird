@@ -139,18 +139,20 @@ class Environment:
                     input_hvc[syll] = 1
                     # reward, action and baseline
                     action, ra, bg, action_bg = self.model.forward(input_hvc, parameters)
-                    if day < self.HEARING_INTACT_DAYS: 
+                    if day < self.HEARING_INTACT_DAYS:
                         reward = self.get_reward(action, syll)
-                    else:
+                        reward_baseline = 0
+                        if iter < REWARD_WINDOW and iter > 0:
+                            reward_baseline = np.mean(self.rewards[day, :iter, syll])
+                        elif iter >= REWARD_WINDOW:
+                            reward_baseline = np.mean(self.rewards[day, iter-REWARD_WINDOW:iter, syll])
+                    else: # hearing removed
                         reward = 0
+                        reward_baseline = -1
+                    # saving updates
                     self.rewards[day, iter, syll] = reward
                     self.actions[day, iter, syll,:] = action
                     self.actions_bg[day, iter, syll,:] = action_bg  
-                    reward_baseline = 0
-                    if iter < REWARD_WINDOW and iter > 0:
-                        reward_baseline = np.mean(self.rewards[day, :iter, syll])
-                    elif iter >= REWARD_WINDOW:
-                        reward_baseline = np.mean(self.rewards[day, iter-REWARD_WINDOW:iter, syll])
                     # Updating weights
                     # RL update
                     dw_hvc_bg = self.learning_rate*(reward - reward_baseline)*input_hvc.reshape(self.hvc_size,1)*self.model.bg * self.model.bg_influence # RL update
