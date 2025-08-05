@@ -12,6 +12,7 @@ class Environment:
         # setting parameters
         self.DAYS = parameters['params']['DAYS']
         self.BG_INTACT_DAYS = parameters['params']['BG_INTACT_DAYS']
+        self.CAF_DAY = parameters['params']['CAF_DAY']
         self.HEARING_INTACT_DAYS = parameters['params']['HEARING_INTACT_DAYS']
         self.TRIALS = parameters['params']['TRIALS']
         self.N_SYLL = parameters['params']['N_SYLL']
@@ -87,6 +88,30 @@ class Environment:
             spread = self.spreads[syll, i]
             hills.append(gaussian(coordinates, height, mean, spread))
         return np.maximum.reduce(hills)
+
+    def artificial_landscape_CAF(self, coordinates, syll):
+        center = self.centers[syll, :]
+        reward_scape = gaussian(coordinates, 1, center, self.target_width)
+        if self.n_distractors == 0:
+            return reward_scape
+        hills = []
+        hills.append(reward_scape)
+        for i in range(self.n_distractors):
+            height = self.heights[syll, i]
+            mean = self.means[syll, i,:]
+            spread = self.spreads[syll, i]
+            hills.append(gaussian(coordinates, height, mean, spread))
+
+        result = np.maximum.reduce(hills)
+    
+        # Create mask: True where y-coordinates are between -0.5 and 0.5
+        mask = (coordinates[1] >= -0.0) & (coordinates[1] <= 0.0)
+        
+        # Apply the mask - set values to 0 where mask is True
+        # You can change this behavior as needed (e.g., multiply by factor, set to different value, etc.)
+        result = np.where(mask, 0, result)
+        
+        return result
     
     def syrinx_landscape(self, coordinates, syll, n = 256):  
         contour = self.syrinx_contours[syll]
@@ -102,6 +127,12 @@ class Environment:
     def get_reward(self, coordinates, syll):
         # landscape creation and reward calculation
         if self.LANDSCAPE == False:
+            return self.artificial_landscape(coordinates, syll)
+        else:
+            return self.syrinx_landscape(coordinates, syll)
+
+    def get_reward_CAF(self, coordinates, syll):
+        if self.LANDSCAPE == False: 
             return self.artificial_landscape(coordinates, syll)
         else:
             return self.syrinx_landscape(coordinates, syll)
@@ -128,7 +159,7 @@ class Environment:
         for day in tqdm(range(self.DAYS)):
             dw_day = np.zeros(self.N_SYLL)
             self.model.bg_influence = True
-            if day >= self.BG_INTACT_DAYS: 
+            if day >= self.BG_INTACT_DAYS:
                 self.model.bg_influence = False # BG lesion on the last day
             sum_RPE = np.zeros(self.N_SYLL)
             for iter in range(self.TRIALS):
@@ -138,7 +169,10 @@ class Environment:
                     input_hvc[syll] = 1
                     # reward, action and baseline
                     action, ra, bg = self.model.forward(input_hvc, parameters)
-                    reward = self.get_reward(action, syll)
+                    if day < self.CAF_DAY:
+                        reward = self.get_reward(action, syll)
+                    else:
+                        reward = self.get_reward_CAF(action, syll)
                     self.rewards[day, iter, syll] = reward
                     self.actions[day, iter, syll,:] = action
                     reward_baseline = 0

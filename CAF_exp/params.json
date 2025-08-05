@@ -5,6 +5,7 @@
     "DAYS": 61,
     "BG_INTACT_DAYS": 61,
     "HEARING_INTACT_DAYS": 40,
+    "CAF_DAY": 60,
     "N_SYLL": 1,
     
     "WEIGHT_JUMP": 2,
