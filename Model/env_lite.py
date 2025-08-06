@@ -129,7 +129,7 @@ class Environment:
         for day in tqdm(range(self.DAYS)):
             dw_day = np.zeros(self.N_SYLL)
             self.model.bg_influence = True
-            if day >= self.BG_INTACT_DAYS: 
+            if day >= self.BG_INTACT_DAYS:
                 self.model.bg_influence = False # BG lesion on the last day
             sum_RPE = np.zeros(self.N_SYLL)
             for iter in range(self.TRIALS):
@@ -152,7 +152,7 @@ class Environment:
                     # saving updates
                     self.rewards[day, iter, syll] = reward
                     self.actions[day, iter, syll,:] = action
-                    self.actions_bg[day, iter, syll,:] = action_bg  
+                    self.actions_bg[day, iter, syll,:] = action_bg
                     # Updating weights
                     # RL update
                     dw_hvc_bg = self.learning_rate*(reward - reward_baseline)*input_hvc.reshape(self.hvc_size,1)*self.model.bg * self.model.bg_influence # RL update

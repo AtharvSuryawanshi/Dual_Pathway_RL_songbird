@@ -50,6 +50,7 @@ class Environment:
         # data storage
         self.rewards = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
         self.actions = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL, self.mc_size))
+        self.actions_bg = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL, self.mc_size))
         self.hvc_bg_array = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
         self.hvc_ra_array = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
 
@@ -71,7 +72,7 @@ class Environment:
         self.RPE = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL)) 
         self.RPE_SUM = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
         self.potentiation_factor_all = np.zeros((self.DAYS, self.N_SYLL, self.hvc_size, self.bg_size))
-        self.dist_from_target = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL)) 
+        self.dist_from_target = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
 
         
         
@@ -89,7 +90,7 @@ class Environment:
             hills.append(gaussian(coordinates, height, mean, spread))
         return np.maximum.reduce(hills)
 
-    def artificial_landscape_CAF(self, coordinates, syll):
+    def artificial_landscape_CAF(self, coordinates, syll, width = 0.1):
         center = self.centers[syll, :]
         reward_scape = gaussian(coordinates, 1, center, self.target_width)
         if self.n_distractors == 0:
@@ -104,7 +105,7 @@ class Environment:
 
         result = np.maximum.reduce(hills)
         # Create mask: True where y-coordinates are between -0.5 and 0.5
-        mask = (coordinates[1] >= -0.1+self.centers[syll, 1]) & (coordinates[1] <= 0.1 + self.centers[syll, 1])
+        mask = (coordinates[1] >= - width +self.centers[syll, 1]) & (coordinates[1] <= width + self.centers[syll, 1])
         # Apply the mask - set values to 0 where mask is True
         # You can change this behavior as needed (e.g., multiply by factor, set to different value, etc.)
         result = np.where(mask, 0, result)
@@ -166,7 +167,7 @@ class Environment:
                     input_hvc = np.zeros(self.hvc_size)
                     input_hvc[syll] = 1
                     # reward, action and baseline
-                    action, ra, bg = self.model.forward(input_hvc, parameters)
+                    action, ra, bg, action_bg = self.model.forward(input_hvc, parameters)
                     if day < self.CAF_DAY:
                         reward = self.get_reward(action, syll)
                     else:
@@ -178,6 +179,10 @@ class Environment:
                         reward_baseline = np.mean(self.rewards[day, :iter, syll])
                     elif iter >= REWARD_WINDOW:
                         reward_baseline = np.mean(self.rewards[day, iter-REWARD_WINDOW:iter, syll])
+                    # saving updates
+                    self.rewards[day, iter, syll] = reward
+                    self.actions[day, iter, syll,:] = action
+                    self.actions_bg[day, iter, syll,:] = action_bg
                     # Updating weights
                     # RL update
                     dw_hvc_bg = self.learning_rate*(reward - reward_baseline)*input_hvc.reshape(self.hvc_size,1)*self.model.bg * self.model.bg_influence # RL update
