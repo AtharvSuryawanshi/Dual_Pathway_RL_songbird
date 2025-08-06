@@ -104,7 +104,7 @@ class Environment:
 
         result = np.maximum.reduce(hills)
         # Create mask: True where y-coordinates are between -0.5 and 0.5
-        mask = (coordinates[1] >= -0.1) & (coordinates[1] <= 0.1)
+        mask = (coordinates[1] >= -0.1+self.centers[syll, 1]) & (coordinates[1] <= 0.1 + self.centers[syll, 1])
         # Apply the mask - set values to 0 where mask is True
         # You can change this behavior as needed (e.g., multiply by factor, set to different value, etc.)
         result = np.where(mask, 0, result)
