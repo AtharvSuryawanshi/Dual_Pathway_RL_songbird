@@ -67,8 +67,10 @@ class NN:
         self.bg = new_sigmoid(np.dot(hvc_array/num_ones, self.W_hvc_bg) + np.random.normal(0, BG_NOISE, self.bg_size), m = BG_SIG_SLOPE, a = BG_sig_MID)
         ra_noise = np.random.normal(0, RA_NOISE, self.ra_size)* HEBBIAN_LEARNING
         self.ra = new_sigmoid(np.dot(self.bg, self.W_bg_ra/np.sum(self.W_bg_ra, axis=0)) * balance_factor * self.bg_influence + np.dot(hvc_array/num_ones, self.W_hvc_ra)* HEBBIAN_LEARNING + ra_noise, m = RA_SIG_SLOPE, a = RA_sig_MID) 
-        self.mc = self.limit*np.dot(self.ra, self.W_ra_mc/np.sum(self.W_ra_mc, axis=0)) # outputs to +-0.50
+        self.mc = self.limit*np.dot(self.ra, self.W_ra_mc/np.sum(self.W_ra_mc, axis=0)) 
         self.ra_hvc = new_sigmoid(np.dot(hvc_array/num_ones, self.W_hvc_ra)* HEBBIAN_LEARNING + ra_noise, m = RA_SIG_SLOPE, a = RA_sig_MID)
+        self.ra_hvc_before_sig = np.dot(hvc_array/num_ones, self.W_hvc_ra)* HEBBIAN_LEARNING + ra_noise
+        self.ra_bg_before_sig = np.dot(self.bg, self.W_bg_ra/np.sum(self.W_bg_ra, axis=0)) * balance_factor * self.bg_influence
         self.mc_ra_hvc = self.limit*np.dot(self.ra_hvc, self.W_ra_mc/np.sum(self.W_ra_mc, axis=0))
         self.mc_ra_bg = self.mc - self.mc_ra_hvc
         return self.mc, self.ra, self.bg, self.mc_ra_bg

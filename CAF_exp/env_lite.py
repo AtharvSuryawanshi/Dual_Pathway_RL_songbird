@@ -61,6 +61,8 @@ class Environment:
         
         self.bg_out = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
         self.ra_out = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
+        self.ra_hvc_before_sig = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL, self.ra_size))
+        self.ra_bg_before_sig = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL, self.ra_size))
 
         # self.ra_all = np.zeros((self.DAYS, self.TRIALS,self.N_SYLL, self.ra_size))
         # self.bg_all = np.zeros((self.DAYS, self.TRIALS,self.N_SYLL, self.bg_size))
@@ -211,6 +213,8 @@ class Environment:
                     self.hvc_ra_array[day, iter, syll] = self.model.W_hvc_ra[syll,1]
                     self.hvc_ra_array_all[day, iter, syll, :] = self.model.W_hvc_ra[syll,:8]
                     self.hvc_bg_array_all[day, iter, syll, :] = self.model.W_hvc_bg[syll,:8]
+                    self.ra_hvc_before_sig[day, iter, syll, :] = self.model.ra_hvc_before_sig
+                    self.ra_bg_before_sig[day, iter, syll, :] = self.model.ra_bg_before_sig
                     if iter == 0:
                         hvc_bg_start = self.model.W_hvc_bg.copy()
                     if iter == self.TRIALS-1:

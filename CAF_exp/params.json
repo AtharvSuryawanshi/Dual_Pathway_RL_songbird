@@ -2,10 +2,10 @@
   "params": 
   {
     "TRIALS": 1000,
-    "DAYS": 61,
-    "BG_INTACT_DAYS": 61,
-    "HEARING_INTACT_DAYS": 61,
-    "CAF_DAY": 50,
+    "DAYS": 100,
+    "BG_INTACT_DAYS": 100,
+    "HEARING_INTACT_DAYS": 100,
+    "CAF_DAY": 60,
     "N_SYLL": 1,
     
     "WEIGHT_JUMP": 2,
@@ -13,7 +13,7 @@
     "JUMP_SLOPE": 30,
     "JUMP_FACTOR": 3, 
   
-    "ANNEALING": 1,
+    "ANNEALING": 0,
     "ANNEALING_SLOPE": 4,
     "ANNEALING_MID": 2,
     "ANNEALING_MID_DECAY": 0.3,
@@ -25,7 +25,7 @@
 
     "REWARD_WINDOW": 10,
 
-    "BG_NOISE": 0.1,
+    "BG_NOISE": 0.6,
     "RA_NOISE": 0.01,
 
     "LANDSCAPE": 0,
