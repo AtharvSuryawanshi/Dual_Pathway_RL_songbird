@@ -35,11 +35,11 @@
     "TARGET_WIDTH": 0.3,
 
     "LEARNING_RATE_RL": 0.2,
-    "LEARNING_RATE_HL": 1.5e-5,
+    "LEARNING_RATE_HL": 1.0e-5,
 
     "BG_SIG_SLOPE": 2.5,
     "BG_sig_MID": 0,
-    "RA_SIG_SLOPE": 18,
+    "RA_SIG_SLOPE": 8,
     "RA_sig_MID": 0,
     "N_BG_CLUSTERS": 2      
   },

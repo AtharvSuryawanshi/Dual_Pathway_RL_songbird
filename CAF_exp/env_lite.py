@@ -76,6 +76,7 @@ class Environment:
         self.RPE_SUM = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
         self.potentiation_factor_all = np.zeros((self.DAYS, self.N_SYLL, self.hvc_size, self.bg_size))
         self.dist_from_target = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
+        self.theta_M_array = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL, self.ra_size))
 
         
         
@@ -108,7 +109,7 @@ class Environment:
 
         result = np.maximum.reduce(hills)
         # Create mask: True where y-coordinates are between -0.5 and 0.5
-        mask = (coordinates[1] >= - width +self.centers[syll, 1]) & (coordinates[1] <= width + self.centers[syll, 1])
+        mask = (coordinates[1] >= - width + self.centers[syll, 1]) & (coordinates[1] <= width + self.centers[syll, 1])
         # Apply the mask - set values to 0 where mask is True
         # You can change this behavior as needed (e.g., multiply by factor, set to different value, etc.)
         result = np.where(mask, 0, result)
@@ -168,7 +169,6 @@ class Environment:
                 total_iters_till_now = day * self.TRIALS + iter
                 for syll in range(self.N_SYLL):
                     # input from HVC is determined by the syllable
-                    nt = total_iters_till_now * self.N_SYLL + syll 
                     input_hvc = np.zeros(self.hvc_size)
                     input_hvc[syll] = 1
                     # reward, action and baseline
@@ -201,9 +201,9 @@ class Environment:
                             ra_iters_roll_mean = self.ra_all.reshape(self.DAYS*self.TRIALS, self.N_SYLL, self.ra_size)[total_iters_till_now-500:total_iters_till_now, syll, :]
                         elif total_iters_till_now > 0:
                             ra_iters_roll_mean = self.ra_all.reshape(self.DAYS*self.TRIALS, self.N_SYLL, self.ra_size)[0:total_iters_till_now, syll, :]
-                        theta_M = np.power(np.mean(ra_iters_roll_mean, axis=0) - 0.5, 2)
+                        theta_M = np.abs(np.mean(ra_iters_roll_mean, axis=0))
                         dw_hvc_ra = learning_rate_hl*input_hvc.reshape(self.hvc_size,1)*(self.model.ra - theta_M)/ (theta_M + 0.1) * HEBBIAN_LEARNING # iBCM learning rule
-
+                        self.theta_M_array[day, iter, syll, :] = theta_M
                     # self.model.W_hvc_ra += dw_hvc_ra
                     # bound weights between +-1
                     # np.clip(self.model.W_hvc_bg, -1, 1, out = self.model.W_hvc_bg)
