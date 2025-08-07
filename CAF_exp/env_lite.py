@@ -23,6 +23,7 @@ class Environment:
         self.LANDSCAPE = parameters['params']['LANDSCAPE']
         self.n_distractors = parameters['params']['N_DISTRACTORS']
         self.target_width = parameters['params']['TARGET_WIDTH']
+        self.hl_rule = parameters['params']['HL_RULE']
         self.seed = seed
         np.random.seed(seed)
         if self.LANDSCAPE == 0:
@@ -64,9 +65,9 @@ class Environment:
         self.ra_hvc_before_sig = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL, self.ra_size))
         self.ra_bg_before_sig = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL, self.ra_size))
 
-        # self.ra_all = np.zeros((self.DAYS, self.TRIALS,self.N_SYLL, self.ra_size))
+        self.ra_all = np.zeros((self.DAYS, self.TRIALS,self.N_SYLL, self.ra_size))
         # self.bg_all = np.zeros((self.DAYS, self.TRIALS,self.N_SYLL, self.bg_size))
-        self.ra_all = np.zeros((self.DAYS, self.TRIALS,self.N_SYLL, 8))
+        # self.ra_all = np.zeros((self.DAYS, self.TRIALS,self.N_SYLL, 8))
         self.bg_all = np.zeros((self.DAYS, self.TRIALS,self.N_SYLL, 8))
         self.dw_day_array = np.zeros((self.DAYS, self.N_SYLL))
         self.pot_array = np.zeros((self.DAYS, self.N_SYLL))
@@ -164,8 +165,10 @@ class Environment:
                 self.model.bg_influence = False # BG lesion on the last day
             sum_RPE = np.zeros(self.N_SYLL)
             for iter in range(self.TRIALS):
+                total_iters_till_now = day * self.TRIALS + iter
                 for syll in range(self.N_SYLL):
                     # input from HVC is determined by the syllable
+                    nt = total_iters_till_now * self.N_SYLL + syll 
                     input_hvc = np.zeros(self.hvc_size)
                     input_hvc[syll] = 1
                     # reward, action and baseline
@@ -190,7 +193,17 @@ class Environment:
                     dw_hvc_bg = self.learning_rate*(reward - reward_baseline)*input_hvc.reshape(self.hvc_size,1)*self.model.bg * self.model.bg_influence # RL update
                     # self.model.W_hvc_bg += dw_hvc_bg
                     # HL update
-                    dw_hvc_ra = learning_rate_hl*input_hvc.reshape(self.hvc_size,1)*self.model.ra*HEBBIAN_LEARNING # lr is supposed to be much smaller here
+                    if self.hl_rule == 1: # Hebbian learning
+                        dw_hvc_ra = learning_rate_hl*input_hvc.reshape(self.hvc_size,1)*self.model.ra*HEBBIAN_LEARNING # lr is supposed to be much smaller here
+                    elif self.hl_rule == 2: # iBCM learning rule 
+                        ra_iters_roll_mean = np.zeros((self.DAYS*self.TRIALS, self.N_SYLL, self.ra_size))
+                        if total_iters_till_now > 500:
+                            ra_iters_roll_mean = self.ra_all.reshape(self.DAYS*self.TRIALS, self.N_SYLL, self.ra_size)[total_iters_till_now-500:total_iters_till_now, syll, :]
+                        elif total_iters_till_now > 0:
+                            ra_iters_roll_mean = self.ra_all.reshape(self.DAYS*self.TRIALS, self.N_SYLL, self.ra_size)[0:total_iters_till_now, syll, :]
+                        theta_M = np.power(np.mean(ra_iters_roll_mean, axis=0) - 0.5, 2)
+                        dw_hvc_ra = learning_rate_hl*input_hvc.reshape(self.hvc_size,1)*(self.model.ra - theta_M)/ (theta_M + 0.1) * HEBBIAN_LEARNING # iBCM learning rule
+
                     # self.model.W_hvc_ra += dw_hvc_ra
                     # bound weights between +-1
                     # np.clip(self.model.W_hvc_bg, -1, 1, out = self.model.W_hvc_bg)
@@ -220,7 +233,7 @@ class Environment:
                     if iter == self.TRIALS-1:
                         hvc_bg_end = self.model.W_hvc_bg.copy()
                     self.ra_out[day, iter, syll] = ra[0]
-                    self.ra_all[day, iter, syll, :] = ra[:8]
+                    self.ra_all[day, iter, syll, :] = ra
                     self.bg_all[day, iter, syll, :] = bg[:8]
                     self.dist_from_target[day, iter, syll] = np.linalg.norm(action - self.centers[syll, :]) 
 

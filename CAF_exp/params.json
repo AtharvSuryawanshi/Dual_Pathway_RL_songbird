@@ -12,8 +12,10 @@
     "JUMP_MID": 0.2,
     "JUMP_SLOPE": 30,
     "JUMP_FACTOR": 3, 
+
+    "HL_RULE": 2,
   
-    "ANNEALING": 0,
+    "ANNEALING": 1,
     "ANNEALING_SLOPE": 4,
     "ANNEALING_MID": 2,
     "ANNEALING_MID_DECAY": 0.3,
@@ -25,7 +27,7 @@
 
     "REWARD_WINDOW": 10,
 
-    "BG_NOISE": 0.6,
+    "BG_NOISE": 0.1,
     "RA_NOISE": 0.01,
 
     "LANDSCAPE": 0,
@@ -33,7 +35,7 @@
     "TARGET_WIDTH": 0.3,
 
     "LEARNING_RATE_RL": 0.2,
-    "LEARNING_RATE_HL": 2.0e-5,
+    "LEARNING_RATE_HL": 1.5e-5,
 
     "BG_SIG_SLOPE": 2.5,
     "BG_sig_MID": 0,
