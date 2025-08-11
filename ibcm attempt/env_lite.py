@@ -65,6 +65,7 @@ class Environment:
         self.ra_hvc_before_sig = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL, self.ra_size))
         self.ra_bg_before_sig = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL, self.ra_size))
 
+        self.theta_sample = np.zeros((self.DAYS, self.TRIALS,self.N_SYLL))
         self.ra_all = np.zeros((self.DAYS, self.TRIALS,self.N_SYLL, self.ra_size))
         # self.bg_all = np.zeros((self.DAYS, self.TRIALS,self.N_SYLL, self.bg_size))
         # self.ra_all = np.zeros((self.DAYS, self.TRIALS,self.N_SYLL, 8))
@@ -76,8 +77,7 @@ class Environment:
         self.RPE_SUM = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
         self.potentiation_factor_all = np.zeros((self.DAYS, self.N_SYLL, self.hvc_size, self.bg_size))
         self.dist_from_target = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
-        self.theta_M_array = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL, self.ra_size))
-        self.ra_diff_array = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL, self.ra_size))
+
         
         
     def artificial_landscape(self, coordinates, syll):
@@ -94,7 +94,7 @@ class Environment:
             hills.append(gaussian(coordinates, height, mean, spread))
         return np.maximum.reduce(hills)
 
-    def artificial_landscape_CAF(self, coordinates, syll, width = 0.1):
+    def artificial_landscape_CAF(self, coordinates, syll, width = 0.07):
         center = self.centers[syll, :]
         reward_scape = gaussian(coordinates, 1, center, self.target_width)
         if self.n_distractors == 0:
@@ -169,6 +169,7 @@ class Environment:
                 total_iters_till_now = day * self.TRIALS + iter
                 for syll in range(self.N_SYLL):
                     # input from HVC is determined by the syllable
+                    nt = total_iters_till_now * self.N_SYLL + syll 
                     input_hvc = np.zeros(self.hvc_size)
                     input_hvc[syll] = 1
                     # reward, action and baseline
@@ -201,11 +202,9 @@ class Environment:
                             ra_iters_roll_mean = self.ra_all.reshape(self.DAYS*self.TRIALS, self.N_SYLL, self.ra_size)[total_iters_till_now-500:total_iters_till_now, syll, :]
                         elif total_iters_till_now > 0:
                             ra_iters_roll_mean = self.ra_all.reshape(self.DAYS*self.TRIALS, self.N_SYLL, self.ra_size)[0:total_iters_till_now, syll, :]
-                        theta_M = np.mean(np.square(ra_iters_roll_mean), axis=0)
-                        print(ra_iters_roll_mean.shape, theta_M.shape, self.model.ra.shape)
-                        dw_hvc_ra = learning_rate_hl*input_hvc.reshape(self.hvc_size,1)*(self.model.ra - theta_M)/ (theta_M + 0.1) * HEBBIAN_LEARNING # iBCM learning rule
-                        self.theta_M_array[day, iter, syll, :] = theta_M
-                        self.ra_diff_array[day, iter, syll, :] = self.model.ra - theta_M
+                        theta_M = np.power(np.mean(ra_iters_roll_mean, axis=0), 2) * np.sign(np.mean(ra_iters_roll_mean, axis=0)) # theta_M is the mean of the last 500 iterations
+                        dw_hvc_ra = learning_rate_hl*input_hvc.reshape(self.hvc_size,1)*(self.model.ra - theta_M)/ (np.abs(theta_M) + 0.1) * HEBBIAN_LEARNING # iBCM learning rule
+
                     # self.model.W_hvc_ra += dw_hvc_ra
                     # bound weights between +-1
                     # np.clip(self.model.W_hvc_bg, -1, 1, out = self.model.W_hvc_bg)
@@ -234,6 +233,9 @@ class Environment:
                         hvc_bg_start = self.model.W_hvc_bg.copy()
                     if iter == self.TRIALS-1:
                         hvc_bg_end = self.model.W_hvc_bg.copy()
+                    if self.hl_rule == 2:
+                        theta_M = np.reshape(theta_M, (100))
+                        self.theta_sample[day, iter, syll] = theta_M[1]
                     self.ra_out[day, iter, syll] = ra[0]
                     self.ra_all[day, iter, syll, :] = ra
                     self.bg_all[day, iter, syll, :] = bg[:8]

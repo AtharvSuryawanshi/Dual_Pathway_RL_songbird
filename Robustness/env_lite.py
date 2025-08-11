@@ -166,6 +166,7 @@ class Environment:
                 total_iters_till_now = day * self.TRIALS + iter
                 for syll in range(self.N_SYLL):
                     # input from HVC is determined by the syllable
+                    nt = total_iters_till_now * self.N_SYLL + syll 
                     input_hvc = np.zeros(self.hvc_size)
                     input_hvc[syll] = 1
                     # reward, action and baseline
@@ -192,11 +193,10 @@ class Environment:
                         ra_iters_roll_mean = np.zeros((self.DAYS*self.TRIALS, self.N_SYLL, self.ra_size))
                         if total_iters_till_now > 500:
                             ra_iters_roll_mean = self.ra_all.reshape(self.DAYS*self.TRIALS, self.N_SYLL, self.ra_size)[total_iters_till_now-500:total_iters_till_now, syll, :]
-                        elif total_iters_till_now >= 0:
+                        elif total_iters_till_now > 0:
                             ra_iters_roll_mean = self.ra_all.reshape(self.DAYS*self.TRIALS, self.N_SYLL, self.ra_size)[0:total_iters_till_now, syll, :]
-                        theta_M = np.power(np.mean(ra_iters_roll_mean, axis=0), 2) # remove 0.5 part later 
-                        dw_hvc_ra = learning_rate_hl*input_hvc.reshape(self.hvc_size,1)*(self.model.ra - theta_M)/ (theta_M + 0.1) * HEBBIAN_LEARNING # iBCM learning rule
-                        self.theta_M_array[day, iter, syll, :] = theta_M
+                        theta_M = np.power(np.mean(ra_iters_roll_mean, axis=0), 2) * np.sign(np.mean(ra_iters_roll_mean, axis=0)) # theta_M is the mean of the last 500 iterations
+                        dw_hvc_ra = learning_rate_hl*input_hvc.reshape(self.hvc_size,1)*(self.model.ra - theta_M)/ (np.abs(theta_M) + 0.1) * HEBBIAN_LEARNING # iBCM learning rule
 
                     # self.model.W_hvc_ra += dw_hvc_ra
                     # bound weights between +-1

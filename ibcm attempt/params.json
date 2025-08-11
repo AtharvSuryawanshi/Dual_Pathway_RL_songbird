@@ -2,10 +2,10 @@
   "params": 
   {
     "TRIALS": 1000,
-    "DAYS": 60,
-    "BG_INTACT_DAYS":100,
+    "DAYS": 70,
+    "BG_INTACT_DAYS": 100,
     "HEARING_INTACT_DAYS": 100,
-    "CAF_DAY": 50,
+    "CAF_DAY": 60,
     "N_SYLL": 1,
     
     "WEIGHT_JUMP": 2,
@@ -35,7 +35,7 @@
     "TARGET_WIDTH": 0.3,
 
     "LEARNING_RATE_RL": 0.2,
-    "LEARNING_RATE_HL": 2.0e-5,
+    "LEARNING_RATE_HL": 17.0e-5,
 
     "BG_SIG_SLOPE": 2.5,
     "BG_sig_MID": 0,

@@ -7,7 +7,7 @@ from tqdm import tqdm
 from matplotlib.colors import LinearSegmentedColormap
 from functions import remove_prev_files
 from model import NN
-from env_lite import build_and_run
+from Dual_Pathway_RL_songbird.CAF_exp.env_lite import build_and_run
 from functions import find_neighboring_directories
 import time 
 
