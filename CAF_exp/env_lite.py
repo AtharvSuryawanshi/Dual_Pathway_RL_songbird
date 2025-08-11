@@ -191,7 +191,7 @@ class Environment:
                     # Updating weights
                     # RL update
                     dw_hvc_bg = self.learning_rate*(reward - reward_baseline)*input_hvc.reshape(self.hvc_size,1)*self.model.bg * self.model.bg_influence # RL update
-                    # self.model.W_hvc_bg += dw_hvc_bg
+                    # self.model.W_hvc_bg += dw_h`vc_bg
                     # HL update
                     if self.hl_rule == 1: # Hebbian learning
                         dw_hvc_ra = learning_rate_hl*input_hvc.reshape(self.hvc_size,1)*self.model.ra*HEBBIAN_LEARNING # lr is supposed to be much smaller here
@@ -201,8 +201,9 @@ class Environment:
                             ra_iters_roll_mean = self.ra_all.reshape(self.DAYS*self.TRIALS, self.N_SYLL, self.ra_size)[total_iters_till_now-500:total_iters_till_now, syll, :]
                         elif total_iters_till_now > 0:
                             ra_iters_roll_mean = self.ra_all.reshape(self.DAYS*self.TRIALS, self.N_SYLL, self.ra_size)[0:total_iters_till_now, syll, :]
-                        theta_M = np.power(np.mean(ra_iters_roll_mean, axis=0) - 0.5, 2)
-                        dw_hvc_ra = learning_rate_hl*input_hvc.reshape(self.hvc_size,1)*(self.model.ra - theta_M)/ (theta_M + 0.1) * HEBBIAN_LEARNING # iBCM learning rule
+                        theta_M = np.power(np.mean(ra_iters_roll_mean, axis=0), 2) * np.sign(np.mean(ra_iters_roll_mean, axis=0)) # theta_M is the mean of the last 500 iterations
+                        dw_hvc_ra = learning_rate_hl*input_hvc.reshape(self.hvc_size,1)*(self.model.ra - theta_M)/ (np.abs(theta_M) + 0.1) * HEBBIAN_LEARNING # iBCM learning rule
+
 
                     # self.model.W_hvc_ra += dw_hvc_ra
                     # bound weights between +-1
