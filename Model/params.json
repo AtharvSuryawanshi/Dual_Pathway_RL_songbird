@@ -5,7 +5,7 @@
     "DAYS": 61,
     "BG_INTACT_DAYS": 60,
     "HEARING_INTACT_DAYS": 61,
-    "N_SYLL": 20,
+    "N_SYLL": 1,
     
     "WEIGHT_JUMP": 2,
     "JUMP_MID": 0.2,
@@ -28,7 +28,7 @@
     "RA_NOISE": 0.01,
 
     "LANDSCAPE": 0,
-    "N_DISTRACTORS": 10,
+    "N_DISTRACTORS": 40,
     "TARGET_WIDTH": 0.3,
 
     "LEARNING_RATE_RL": 0.2,
