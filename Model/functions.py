@@ -10,6 +10,47 @@ def remove_prev_files(): #
     for filename in os.listdir(save_dir):
         os.remove(os.path.join(save_dir, filename))
 
+def running_mean(x, N=5):
+        """ Returns the running average of an array. """
+        rm = np.convolve(x, np.ones(N)/N, mode='valid')
+        padded_rm = np.ones(np.shape(x)) * rm[-1]
+        padded_rm[:rm.size] = rm
+
+        return padded_rm
+
+def running_mean_dynamic(x, N_i=3, N_f=50):
+    """
+    Running mean with linearly increasing window size.
+    
+    Parameters
+    ----------
+    x : array-like
+        Input array.
+    N_i : int
+        Initial window size at the start.
+    N_f : int
+        Final window size at the end.
+        
+    Returns
+    -------
+    smoothed : np.ndarray
+        Smoothed array of same length as x.
+    """
+    x = np.asarray(x)
+    n = len(x)
+    smoothed = np.zeros(n)
+
+    # Window sizes increase linearly from N_i to N_f
+    window_sizes = np.linspace(N_i, N_f, n).astype(int)
+
+    for i in range(n):
+        N = window_sizes[i]
+        start = max(0, i - N//2)
+        end = min(n, i + N//2 + 1)
+        smoothed[i] = np.mean(x[start:end])
+    
+    return smoothed
+
 # Basic functions
 def gaussian(coordinates, height, mean, spread):
     constant = 1 / (2 * spread**2)  # Pre-compute if spread is constant
