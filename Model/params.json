@@ -3,7 +3,7 @@
   {
     "TRIALS": 1000,
     "DAYS": 61,
-    "BG_INTACT_DAYS": 60,
+    "BG_INTACT_DAYS": 61,
     "HEARING_INTACT_DAYS": 61,
     "N_SYLL": 20,
     

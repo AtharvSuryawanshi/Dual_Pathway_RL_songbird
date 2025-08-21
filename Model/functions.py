@@ -18,10 +18,12 @@ def running_mean(x, N=5):
 
         return padded_rm
 
-def running_mean_dynamic(x, N_i=3, N_f=50):
+def running_mean_dynamic(x, N_i=3, N_f=50, steepness=5.0):
     """
-    Running mean with linearly increasing window size.
-    
+    Running mean with dynamically increasing window size.
+    Window sizes grow fast at the beginning and then slow down
+    (1 - exp(-ax)) shaped curve.
+
     Parameters
     ----------
     x : array-like
@@ -30,7 +32,10 @@ def running_mean_dynamic(x, N_i=3, N_f=50):
         Initial window size at the start.
     N_f : int
         Final window size at the end.
-        
+    steepness : float
+        Controls how quickly the window size approaches N_f.
+        Higher values -> faster growth at start, slower near end.
+
     Returns
     -------
     smoothed : np.ndarray
@@ -39,17 +44,49 @@ def running_mean_dynamic(x, N_i=3, N_f=50):
     x = np.asarray(x)
     n = len(x)
     smoothed = np.zeros(n)
-
-    # Window sizes increase linearly from N_i to N_f
-    window_sizes = np.linspace(N_i, N_f, n).astype(int)
-
+    # Normalized x between 0 and 1
+    t = np.linspace(0, 1, n)
+    # Exponential-like growth curve
+    curve = 1 - np.exp(-steepness * t)
+    # Normalize to [0, 1]
+    curve /= curve[-1]
+    # Scale to window sizes
+    window_sizes = N_i + (N_f - N_i) * curve
+    window_sizes = window_sizes.astype(int)
     for i in range(n):
         N = window_sizes[i]
         start = max(0, i - N//2)
         end = min(n, i + N//2 + 1)
         smoothed[i] = np.mean(x[start:end])
-    
     return smoothed
+
+def running_std(x, window=100):
+    """
+    Compute running standard deviation with a sliding window.
+    
+    Parameters
+    ----------
+    x : array-like
+        Input array.
+    window : int
+        Window size.
+    
+    Returns
+    -------
+    stds : np.ndarray
+        Running standard deviation (same length as x).
+    """
+    x = np.asarray(x)
+    n = len(x)
+    stds = np.zeros(n)
+    
+    for i in range(n):
+        start = max(0, i - window//2)
+        end = min(n, i + window//2 + 1)
+        stds[i] = np.std(x[start:end])
+    
+    return stds
+
 
 # Basic functions
 def gaussian(coordinates, height, mean, spread):
