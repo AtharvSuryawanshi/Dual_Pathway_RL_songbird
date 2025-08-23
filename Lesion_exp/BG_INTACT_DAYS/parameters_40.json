@@ -3,6 +3,7 @@
     "TRIALS": 1000,
     "DAYS": 61,
     "BG_INTACT_DAYS": 40,
+    "HEARING_INTACT_DAYS": 40,
     "N_SYLL": 1,
     "WEIGHT_JUMP": 2,
     "JUMP_MID": 0.2,
