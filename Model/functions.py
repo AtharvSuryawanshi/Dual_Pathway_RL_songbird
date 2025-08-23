@@ -106,6 +106,9 @@ def sigmoid(x, m =0.0 , a=0.0 ):
     """ Returns an output between 0 and 1 """
     return 1 / (1 + np.exp(-1*(x-a)*m))
 
+def squash(x, p=3, a = 0):
+    return 0.5 + 0.5 * (x-a) * np.abs(x-a)**p
+
 def sym_lognormal_samples(minimum, maximum, size, mu = 0.01, sigma = 0.5):
     """
     This function generates samples from a combined (original + reflected) lognormal distribution.
