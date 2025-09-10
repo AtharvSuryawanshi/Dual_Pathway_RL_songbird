@@ -190,3 +190,4 @@ color_cortical = sns_cmap[0]
 color_bg = sns_cmap[1]
 color_motor = 'k'
 color_contour_bckg = 'Greys'
+color_reward = 'k'
