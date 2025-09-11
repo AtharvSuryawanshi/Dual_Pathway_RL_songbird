@@ -2,6 +2,7 @@ import numpy as np
 import os
 from scipy.interpolate import interp2d
 import seaborn as sns
+from matplotlib.colors import LinearSegmentedColormap
 
 # save plots in a folder
 save_dir = "plots"
@@ -189,6 +190,6 @@ sns_cmap = sns.color_palette("colorblind")
 color_cortical = sns_cmap[0]
 color_bg = sns_cmap[1]
 color_motor = 'k'
-color_contour_bckg = 'Greys'
+color_contour_bckg = LinearSegmentedColormap.from_list('change_this', ['white', 'white']) # 'Greys' 
 color_reward = 'k'
-if_contour = False
+if_contour = True
