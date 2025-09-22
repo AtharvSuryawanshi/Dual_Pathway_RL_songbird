@@ -7,6 +7,7 @@ import json
 from model import NN
 from functions import *
 
+
 class Environment:
     def __init__(self, seed, parameters, NN):
         # setting parameters
