@@ -1,97 +1,73 @@
-import json 
-import os
+import os 
 import numpy as np
 import matplotlib.pyplot as plt
-from numpy import core
-from tqdm import tqdm
-from matplotlib.colors import LinearSegmentedColormap
-from functions import remove_prev_files
-from model import NN
-from env_lite import build_and_run
-from functions import find_neighboring_directories
-import time 
+import yaml
+from pathlib import Path
+import pickle
+import queue
+from scipy.integrate import solve_ivp
+from dual_pathway_model.functions import *
+from dual_pathway_model.directory_functions import *
+from dual_pathway_model.model import build_and_run, NN, params_base
 
-NOS_SEEDS = 100
+# directory where robustness.py lives
+HERE = Path(__file__).resolve().parent
+
+ROBUSTNESS_CONFIG = HERE / "robustness_params.yaml"
+
+with open(ROBUSTNESS_CONFIG, "r") as f:
+    robustness_cfg = yaml.safe_load(f)
+
+print(f"Robustness parameters loaded from {ROBUSTNESS_CONFIG}")
+
+NOS_SEEDS = 2
 time_per_iter = 5.5
 state = 5
 np.random.seed(state)
 seeds = np.random.randint(0, 100000, NOS_SEEDS)
 seeds.sort()
-wanted_directories =["BG_NOISE", "RA_NOISE", "LEARNING_RATE_RL", "REWARD_WINDOW", "LEARNING_RATE_HL","TARGET_WIDTH","ANNEALING", "JUMP_MID", "JUMP_SLOPE", "JUMP_FACTOR", "RA_SIG_SLOPE", "balance_factor"]#["ANNEALING", "BG_NOISE", "LEARNING_RATE_HL", "LEARNING_RATE_RL", "RA_NOISE", "N_BG_CLUSTERS", "N_DISTRACTORS", "REWARD_WINDOW", "TARGET_WIDTH"]                                       
-neighboring_directories = find_neighboring_directories()
-for directory in neighboring_directories:
-    if directory in wanted_directories:
-        print(f"Directory: {directory}")
-        np_path1 = f"{directory}/overall_returns.npy"
-        np_path2 = f"{directory}/parameter_values.npy"
-        np_file_name1 = os.path.basename(np_path1)
-        np_file_name2 = os.path.basename(np_path2)
-        if os.path.isfile(np_path1) and np_file_name1.endswith(".npy"):
-            os.remove(np_path1)
-            print(f"Deleted NumPy file: {np_path1}")
-        if os.path.isfile(np_path2) and np_file_name2.endswith(".npy"):
-            os.remove(np_path2)
-            print(f"Deleted NumPy file: {np_path2}")
 
-total_parameters = 0
-for directory in neighboring_directories:
-    if directory in wanted_directories:
-        # load parameters from json file
-        nos_parameters = 0
-        print(f"Seeds: {seeds}")
-        for potential_filename in os.listdir(directory):
-            if potential_filename.startswith("parameters_") and potential_filename.endswith(".json"):
-                total_parameters += 1
+for param_name, param_info in robustness_cfg.items():
+    section = param_info["section"]
+    values = param_info["values"]
 
-print(f"Total number of parameters: {total_parameters}")
-time_remaining_in_s = time_per_iter * total_parameters * NOS_SEEDS
-time_remaining = np.round(time_remaining_in_s / 60, 2)
-print(f"Time remaining: {time_remaining} minutes")
+    print(f"\nRunning robustness for {section}.{param_name}")
 
-start_time = time.perf_counter()
+    terminal_performance = np.zeros((NOS_SEEDS, len(values)))
 
-for directory in neighboring_directories:
-    if directory in wanted_directories:
-        # load parameters from json file
-        nos_parameters = 0
-        # print(f"Seeds: {seeds}")
-        for potential_filename in os.listdir(directory):
-            if potential_filename.startswith("parameters_") and potential_filename.endswith(".json"):
-                nos_parameters += 1
-        print(f"Number of parameters: {nos_parameters} for directory {directory}")
+    for val_idx, val in enumerate(values):
+        print(f" -- {param_name} = {val}")
 
-        overall_returns_cutoff = np.zeros((NOS_SEEDS, nos_parameters))
-        overall_returns_nocutoff = np.zeros((NOS_SEEDS, nos_parameters))
-        parameter_values = np.zeros(nos_parameters)
-        j = 0
-        for potential_filename in os.listdir(directory):
-            if potential_filename.startswith("parameters_") and potential_filename.endswith(".json"):
-                print(f"Potential filename: {potential_filename} with index {j}")     
-                if j >= nos_parameters:
-                    print(f"Skipping file {potential_filename} as index {j} exceeds nos_parameters {nos_parameters}")
-                    continue
-                param = potential_filename.split("_")[1].split(".jso")[0]
-                full_filename = os.path.join(directory, potential_filename)
-                # load parameters from json file
-                with open(full_filename, "r") as f:
-                    parameters = json.load(f)
-                    N_SYLL = parameters['params']['N_SYLL']
-                    if N_SYLL != 1:
-                        raise ValueError('nos syllables needs to be 1')
-                    print(f"Opening JSON file: {full_filename}")
-                    returns_cutoff = np.zeros((NOS_SEEDS))
-                    returns_nocutoff = np.zeros((NOS_SEEDS))    
-                    for i, seed in enumerate(seeds):
-                        elapsed_time = time.perf_counter() - start_time
-                        annealing_val = parameters['params']['ANNEALING']
-                        returns_cutoff[i], returns_nocutoff[i] = build_and_run(seed, annealing=annealing_val, plot=False, parameters=parameters, NN=NN)
-                        print(F"Seed: {seed} with returns_cutoff: {returns_cutoff[i]} and returns_nocutoff: {returns_nocutoff[i]}")
-                        print(f"Time remaining now: {np.round((time_remaining_in_s - elapsed_time) / 60, 2)} minutes")
-                    overall_returns_cutoff[:, j] = returns_cutoff
-                    overall_returns_nocutoff[:, j] = returns_nocutoff
-                    parameter_values[j] = param
-                    j += 1
+        parameters = update_params(
+            params_base,
+            **{
+                f"{section}.{param_name}": val,
+                "params.N_SYLL": 1
+            }
+        )
 
-        np.save(f"{directory}/overall_returns_cutoff.npy", overall_returns_cutoff)
-        np.save(f"{directory}/overall_returns_nocutoff.npy", overall_returns_nocutoff)
-        np.save(f"{directory}/parameter_values.npy", parameter_values)
+        if parameters["params"]["N_SYLL"] != 1:
+            raise ValueError("N_SYLL must be 1 for robustness analysis.")
+
+        for seed_idx, seed in enumerate(seeds):
+            perf = build_and_run(seed, parameters, NN)
+            terminal_performance[seed_idx, val_idx] = perf
+            print(f"    Seed {seed} -> {perf}")
+
+    results_dir = HERE / "results" / f"{section}_{param_name}"
+    results_dir.mkdir(parents=True, exist_ok=True)
+
+    np.save(results_dir / "terminal_performance.npy", terminal_performance)
+
+    with open(results_dir / "meta.yaml", "w") as f:
+        yaml.safe_dump(
+            {
+                "parameter": param_name,
+                "section": section,
+                "values": [float(v) for v in values],  # convert to Python float
+                "seeds": [int(s) for s in seeds],      # convert to Python int
+                "shape": terminal_performance.shape
+            },
+            f
+        )
+    print(f"Results saved to {results_dir}")

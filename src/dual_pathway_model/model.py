@@ -17,6 +17,8 @@ with open(config_path, "r") as f:
     params_base = yaml.safe_load(f)
     print("Base parameters loaded from params.yaml")
 
+
+
 # Model
 class NN:
     def __init__(self, parameters, seed):
@@ -470,23 +472,27 @@ def plot_trajectory(obj, syll):
     plt.tight_layout()
     plt.show()
             
-def build_and_run(seed, annealing, plot, parameters, NN):
+def build_and_run(seed, parameters, NN, lesion = False, plot = False):
     N_SYLL = parameters['params']['N_SYLL']
     DAYS = parameters['params']['DAYS']
     TRIALS = parameters['params']['TRIALS']
+    ANNEALING = parameters['params']['ANNEALING']
     tqdm.write(f" Random seed is {seed}")
     np.random.seed(seed)
     if plot:
         remove_prev_files()
     env = Environment(seed, parameters, NN)
-    env.run(parameters, annealing)
+    env.run(parameters, ANNEALING)
     for i in range(N_SYLL):
         if plot:
             env.save_trajectory(i)
             env.save_results(i)
-            if annealing:
+            if ANNEALING:
                 env.save_dw_day(i)
         rewards = env.rewards[:,:,0].reshape(env.DAYS*env.TRIALS)
         # return rewards after lesion and before lesion 
-    return np.mean(rewards[-100:], axis=0), np.mean(rewards[(DAYS-1)*TRIALS-100:(DAYS-1)*TRIALS], axis=0)
+    if lesion:
+        return np.mean(rewards[-100:], axis=0), np.mean(rewards[(DAYS-1)*TRIALS-100:(DAYS-1)*TRIALS], axis=0)
+    else: 
+        return np.mean(rewards[-100:], axis=0)
 

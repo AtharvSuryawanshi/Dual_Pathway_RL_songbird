@@ -1,0 +1,11 @@
+parameter: RA_NOISE
+section: params
+seeds:
+- 18638
+- 35683
+shape:
+- 2
+- 2
+values:
+- 0.0
+- 0.1
