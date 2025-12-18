@@ -1,16 +1,8 @@
 import numpy as np
-import os
-from scipy.interpolate import interp2d
+from scipy.interpolate import interp2d, RegularGridInterpolator
 import seaborn as sns
 from matplotlib.colors import LinearSegmentedColormap
 
-# save plots in a folder
-save_dir = "plots"
-def remove_prev_files(): # 
-    '''removes previous files in the directory'''
-    os.makedirs(save_dir, exist_ok = True)
-    for filename in os.listdir(save_dir):
-        os.remove(os.path.join(save_dir, filename))
 
 def running_mean(x, N=5):
         """ Returns the running average of an array. """
@@ -136,26 +128,6 @@ def lognormal_weight(size, mu = 0.01, sigma = 0.5):
     samples = np.random.lognormal(mu, sigma, size)/4
     samples = np.clip(samples, 0, 1)
     return samples
-
-def find_neighboring_directories():
-    """
-    Finds all directories (folders, except pycache) in the same directory as the currently running Python script.
-
-    Returns:
-        list: A list of directory names found in the same directory.
-    """
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    all_entries = os.listdir(current_dir)
-    directories = []
-    for entry in all_entries:
-        if entry != "__pycache__":  # Skip the cache directory
-            full_path = os.path.join(current_dir, entry)  # Get full path for entry
-            if os.path.isdir(full_path):  # Check if it's a directory
-                if entry != "__pycache__" and entry != "plots": 
-                    directories.append(entry)
-    return directories
-
-from scipy.interpolate import RegularGridInterpolator
 
 def make_contour(Z, n=256):
     Z = Z / Z.max()

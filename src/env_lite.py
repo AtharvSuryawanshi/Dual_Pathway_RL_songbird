@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 from matplotlib.colors import LinearSegmentedColormap
 import json
-from model import NN
-from functions import *
+from dual_pathway_model.model import NN
+from dual_pathway_model.functions import *
 
 
 class Environment:
@@ -416,13 +416,13 @@ def build_and_run(seed, annealing, plot, parameters, NN):
 
 
 # load parameters from json file
-params_path = "params.json"
+params_path = "C:\\Users\\aSuryawanshi\\Documents\\Codes\\Dual_Pathway_RL_songbird\\Model\\params.json"
 # Open the file and read the contents
 with open(params_path, "r") as f:
     parameters = json.load(f)
 # # running conditions
-# env = Environment(629, parameters, NN)
-# env.run(parameters, True)
+env = Environment(629, parameters, NN)
+env.run(parameters, True)
 # remove_prev_files()
 # env.save_trajectory(0)
 # env.save_results(0)
