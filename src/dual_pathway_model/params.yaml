@@ -1,30 +1,45 @@
 params:
+# Simulation parameters
   TRIALS: 1000
   DAYS: 61
   BG_INTACT_DAYS: 61
   HEARING_INTACT_DAYS: 61
   N_SYLL: 4
+
+# Simulation type
+  ANNEALING: 1
+  HEBBIAN_LEARNING: 1
+  BG_influence: 1
   WEIGHT_JUMP: 2
   JUMP_MID: 0.2
   JUMP_SLOPE: 30
   JUMP_FACTOR: 3
-  ANNEALING: 1
+  REWARD_WINDOW: 10
+
+  # skeleton params
   ANNEALING_SLOPE: 4
   ANNEALING_MID: 2
   ANNEALING_MID_DECAY: 0.3
-  HEBBIAN_LEARNING: 1
-  LOG_NORMAL: 0
-  balance_factor: 3
-  BG_influence: 1
-  HARD_BOUND: 0
-  REWARD_WINDOW: 10
+
+# Noise parameters
   BG_NOISE: 0.1
   RA_NOISE: 0.01
+
+# Landscape parameters
   LANDSCAPE: 0
   N_DISTRACTORS: 10
   TARGET_WIDTH: 0.3
+
+# Learning parameters
   LEARNING_RATE_RL: 0.2
   LEARNING_RATE_HL: 2.0e-5
+
+# Weight params
+  HARD_BOUND: 0
+
+  LOG_NORMAL: 0
+  balance_factor: 3
+
   BG_SIG_SLOPE: 2.5
   BG_sig_MID: 0
   RA_SIG_SLOPE: 18
