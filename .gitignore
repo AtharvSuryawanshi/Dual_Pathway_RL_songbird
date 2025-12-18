@@ -5,6 +5,9 @@ Lesion_exp/**/parameters_*.json
 Benchmarks/**/**/parameters_*.json
 Model/model**.pkl
 
+# ignore all .npy 
+*.npy
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
