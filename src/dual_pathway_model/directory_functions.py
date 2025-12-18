@@ -1,4 +1,18 @@
 import os
+from copy import deepcopy
+
+def update_params(base, **overrides):
+    """
+    Return a new dict with updated parameters.
+    Example:
+        current = update_params(params_base, BG_NOISE=0.05, ANNEALING=2)
+    """
+    new_params = deepcopy(base)
+    for key, value in overrides.items():
+        # key format: "params.BG_NOISE" or "const.HVC_SIZE"
+        section, param = key.split(".")
+        new_params[section][param] = value
+    return new_params
 
 
 # save plots in a folder

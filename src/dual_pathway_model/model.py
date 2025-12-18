@@ -3,14 +3,19 @@ import os
 import json
 import matplotlib.pyplot as plt
 from tqdm import tqdm
+import yaml
+from pathlib import Path
 from matplotlib.colors import LinearSegmentedColormap
 from dual_pathway_model.functions import *
 
-# # load parameters from json file
-# params_path = "C:\\Users\\aSuryawanshi\\Documents\\Codes\\Dual_Pathway_RL_songbird\\Model\\params.json"
-# # Open the file and read the contents
-# with open(params_path, "r") as f:
-#     parameters = json.load(f)
+
+# Parameters 
+# Get path relative to this file
+config_path = Path(__file__).parent / "params.yaml"
+
+with open(config_path, "r") as f:
+    params_base = yaml.safe_load(f)
+    print("Base parameters loaded from params.yaml")
 
 # Model
 class NN:

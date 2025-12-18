@@ -4,8 +4,25 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 from matplotlib.colors import LinearSegmentedColormap
 import json
+import yaml
+from pathlib import Path
 from dual_pathway_model.model import NN
 from dual_pathway_model.functions import *
+
+
+
+# Get path relative to this file
+config_path = Path(__file__).parent / "params.yaml"
+
+with open(config_path, "r") as f:
+    parameters = yaml.safe_load(f)
+    print("Parameters loaded from params.yaml")
+
+
+# params_path = "C:\\Users\\aSuryawanshi\\Documents\\Codes\\Dual_Pathway_RL_songbird\\src\\dual_pathway_model\\params.yaml"
+# with open(params_path, "r") as f:
+#     parameters = yaml.safe_load(f)
+#     print("Parameters loaded from params.yaml")
 
 
 class Environment:
@@ -416,10 +433,10 @@ def build_and_run(seed, annealing, plot, parameters, NN):
 
 
 # load parameters from json file
-params_path = "C:\\Users\\aSuryawanshi\\Documents\\Codes\\Dual_Pathway_RL_songbird\\Model\\params.json"
+# params_path = "C:\\Users\\aSuryawanshi\\Documents\\Codes\\Dual_Pathway_RL_songbird\\Model\\params.json"
 # Open the file and read the contents
-with open(params_path, "r") as f:
-    parameters = json.load(f)
+# with open(params_path, "r") as f:
+#     parameters = json.load(f)
 # # running conditions
 env = Environment(629, parameters, NN)
 env.run(parameters, True)
