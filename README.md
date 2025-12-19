@@ -18,5 +18,29 @@ conda activate dual_pathway_env
 # Install dependencies
 cd Dual_Pathway_RL_songbird
 pip install -r requirements.txt
+
+# Install dual_pathway_model package
+pip install -e .
 ```
+
+## Repository Structure
+
+```text
+Dual_Pathway_RL_songbird/
+|-- src/dual_pathway_model/
+|   |-- model.py                # Core model definition
+|   |-- functions.py            # Helper functions
+|   |-- directory_functions.py  # Directory helper functions
+|   `-- params_base.py          # Default parameters
+|-- Robustness/
+|   |-- results/
+            `-- PARAM_NAME 
+                    |-- meta.yaml                       # Metadata from experiment
+                    `-- terminal_performance.npy        # Terminal performance 
+|   `-- robustness.py           # Main simulation script
+|-- Figures/
+|   `-- Figure_x.ipynb
+`-- requirements.txt          # package requirements
+```
+
 
