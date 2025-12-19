@@ -20,29 +20,45 @@ with open(ROBUSTNESS_CONFIG, "r") as f:
 
 print(f"Robustness parameters loaded from {ROBUSTNESS_CONFIG}")
 
-NOS_SEEDS = 2
+NOS_SEEDS = 100
 time_per_iter = 5.5
 state = 5
 np.random.seed(state)
 seeds = np.random.randint(0, 100000, NOS_SEEDS)
 seeds.sort()
 
+# TIME ESTIMATE
+total_iterations = sum(len(param_info["values"]) for param_info in robustness_cfg.values()) * NOS_SEEDS
+total_time_hours = (total_iterations * time_per_iter) / 3600
+print(f"Estimated total time for robustness analysis: {total_time_hours:.2f} hours")
+
 for param_name, param_info in robustness_cfg.items():
     section = param_info["section"]
     values = param_info["values"]
 
+    # param_type = param_info.get("type", "float")
+
+    # if param_type == "int":
+    #     values = [int(v) for v in param_info["values"]]
+    # elif param_type == "float":
+    #     values = [float(v) for v in param_info["values"]]
+    # else:
+    #     raise ValueError(f"Unknown type {param_type} for {param_name}")
+    
     print(f"\nRunning robustness for {section}.{param_name}")
 
     terminal_performance = np.zeros((NOS_SEEDS, len(values)))
 
     for val_idx, val in enumerate(values):
+        val = float(val)  # ensure val is a float for YAML serialization
         print(f" -- {param_name} = {val}")
 
         parameters = update_params(
             params_base,
             **{
                 f"{section}.{param_name}": val,
-                "params.N_SYLL": 1
+                "params.N_SYLL": 1,
+                # "params.DAYS": 2, # for quick testing
             }
         )
 

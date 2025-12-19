@@ -1,3 +1,22 @@
-This is a repository to store the codes of a rate coding of a Dual Pathway Learning model in Song Birds.
-The branch `for-figures-exclusive` has all the requirements to make figures. 
-The intermediatary report of the work done is attached as `internship_report.pdf`.
+# Dual Pathway Architecture for songlearning in zebra finches
+## 🛠 Getting Started
+
+
+## Installation
+Set up your environment with these simple steps:
+
+Clone the repository:
+
+```bash
+# Clone the repo 
+git clone "https://github.com/AtharvSuryawanshi/Dual_Pathway_RL_songbird/tree/library"
+
+# Create and activate environment
+conda create --name dual_pathway_env python=3.12
+conda activate dual_pathway_env
+
+# Install dependencies
+cd Dual_Pathway_RL_songbird
+pip install -r requirements.txt
+```
+

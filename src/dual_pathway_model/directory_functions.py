@@ -1,5 +1,6 @@
 import os
 from copy import deepcopy
+from pathlib import Path
 
 def update_params(base, **overrides):
     """
@@ -41,3 +42,34 @@ def find_neighboring_directories():
                     directories.append(entry)
     return directories
 
+def find_subdirectories(
+    base_dir,
+    exclude=("__pycache__", "plots"),
+    absolute=False
+):
+    """
+    Return all subdirectories inside base_dir.
+
+    Args:
+        base_dir (str or Path): Directory to search inside
+        exclude (tuple): Directory names to ignore
+        absolute (bool): If True, return full paths
+
+    Returns:
+        list[str] or list[Path]
+    """
+    base_dir = Path(base_dir).resolve()
+
+    if not base_dir.exists():
+        raise FileNotFoundError(f"{base_dir} does not exist")
+
+    subdirs = []
+    for p in base_dir.iterdir():
+        if p.is_dir() and p.name not in exclude:
+            subdirs.append(p if absolute else p.name)
+
+    return subdirs
+
+def extract_param_name(folder: Path):
+    # params_BG_NOISE → BG_NOISE
+    return folder.name.split("_", 1)[-1]

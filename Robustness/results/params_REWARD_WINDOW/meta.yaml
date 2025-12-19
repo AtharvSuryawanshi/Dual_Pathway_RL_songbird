@@ -1,4 +1,4 @@
-parameter: BG_NOISE
+parameter: REWARD_WINDOW
 section: params
 seeds:
 - 44
@@ -103,10 +103,9 @@ seeds:
 - 99878
 shape:
 - 100
-- 5
+- 4
 values:
-- 0.05
-- 0.1
-- 0.15
-- 0.2
-- 0.3
+- 5.0
+- 10.0
+- 15.0
+- 20.0

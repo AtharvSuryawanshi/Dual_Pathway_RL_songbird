@@ -24,15 +24,15 @@ class NN:
     def __init__(self, parameters, seed):
         # setting parameters
         # np.random.seed(seed)
-        self.hvc_size = parameters['const']['HVC_SIZE']
-        self.bg_size = parameters['const']['BG_SIZE']
-        self.ra_size = parameters['const']['RA_SIZE']
-        self.mc_size = parameters['const']['MC_SIZE']
-        self.n_ra_clusters = parameters['const']['N_RA_CLUSTERS']
-        self.n_bg_clusters = parameters['params']['N_BG_CLUSTERS']
+        self.hvc_size = int(parameters['const']['HVC_SIZE'])
+        self.bg_size = int(parameters['const']['BG_SIZE'])
+        self.ra_size = int(parameters['const']['RA_SIZE'])
+        self.mc_size = int(parameters['const']['MC_SIZE'])
+        self.n_ra_clusters = int(parameters['const']['N_RA_CLUSTERS'])
+        self.n_bg_clusters = int(parameters['params']['N_BG_CLUSTERS'])
         LOG_NORMAL = parameters['params']['LOG_NORMAL']
         self.bg_influence = parameters['params']['BG_influence']
-        self.LANDSCAPE = parameters['params']['LANDSCAPE']
+        self.LANDSCAPE = int(parameters['params']['LANDSCAPE'])
         if self.LANDSCAPE == 0:
             self.limit = 1.5
         else:
@@ -110,10 +110,11 @@ class Environment:
         self.model = NN(parameters, seed)
         # landscape parameters
         if self.LANDSCAPE == 0: # ARTIFICAL LANDSCAPE
+            n_distractors = int(self.n_distractors)
             self.centers = np.random.uniform(-0.9, 0.9, (self.N_SYLL, 2))
-            self.heights = np.random.uniform(0.2, 0.7, (self.N_SYLL, self.n_distractors))
-            self.means = np.random.uniform(-1, 1, (self.N_SYLL,self.n_distractors, 2))
-            self.spreads = np.random.uniform(0.1, 0.6, (self.N_SYLL, self.n_distractors))
+            self.heights = np.random.uniform(0.2, 0.7, (self.N_SYLL, n_distractors))
+            self.means = np.random.uniform(-1, 1, (self.N_SYLL,n_distractors, 2))
+            self.spreads = np.random.uniform(0.1, 0.6, (self.N_SYLL, n_distractors))
         else: # SYRINX LANDSCAPE
             if self.N_SYLL > 4:
                 raise ValueError('Only 4 syllables are available in the syrinx landscape')
@@ -161,7 +162,7 @@ class Environment:
             return reward_scape
         hills = []
         hills.append(reward_scape)
-        for i in range(self.n_distractors):
+        for i in range(int(self.n_distractors)):
             height = self.heights[syll, i]
             mean = self.means[syll, i,:]
             spread = self.spreads[syll, i]
@@ -193,7 +194,7 @@ class Environment:
         # learning parameters
         self.learning_rate = parameters['params']['LEARNING_RATE_RL']
         learning_rate_hl = parameters['params']['LEARNING_RATE_HL']
-        REWARD_WINDOW = parameters['params']['REWARD_WINDOW']
+        REWARD_WINDOW = int(parameters['params']['REWARD_WINDOW'])
         HEBBIAN_LEARNING = parameters['params']['HEBBIAN_LEARNING']
         ANNEALING_SLOPE = parameters['params']['ANNEALING_SLOPE']
         ANNEALING_MID = parameters['params']['ANNEALING_MID']

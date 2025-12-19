@@ -22,7 +22,7 @@ params:
   ANNEALING_MID_DECAY: 0.3
 
 # Noise parameters
-  BG_NOISE: 0.1
+  BG_NOISE: 0.2
   RA_NOISE: 0.01
 
 # Landscape parameters
