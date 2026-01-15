@@ -23,7 +23,7 @@ params:
 
 # Noise parameters
   BG_NOISE: 0.2
-  RA_NOISE: 0.01
+  RA_NOISE: 0.1
 
 # Landscape parameters
   LANDSCAPE: 0
