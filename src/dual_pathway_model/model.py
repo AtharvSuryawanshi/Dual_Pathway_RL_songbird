@@ -478,6 +478,7 @@ def build_and_run(seed, parameters, NN, lesion = False, plot = False):
     DAYS = parameters['params']['DAYS']
     TRIALS = parameters['params']['TRIALS']
     ANNEALING = parameters['params']['ANNEALING']
+    BG_INTACT_DAYS = parameters['params']['BG_INTACT_DAYS']
     tqdm.write(f" Random seed is {seed}")
     np.random.seed(seed)
     if plot:
@@ -492,8 +493,8 @@ def build_and_run(seed, parameters, NN, lesion = False, plot = False):
                 env.save_dw_day(i)
         rewards = env.rewards[:,:,0].reshape(env.DAYS*env.TRIALS)
         # return rewards after lesion and before lesion 
-    if lesion:
-        return np.mean(rewards[-100:], axis=0), np.mean(rewards[(DAYS-1)*TRIALS-100:(DAYS-1)*TRIALS], axis=0)
-    else: 
+    if lesion: # terminal performance; before lesion; after lesion
+        return np.mean(rewards[-100:], axis=0), np.mean(rewards[int((BG_INTACT_DAYS-1)*TRIALS-100):int((BG_INTACT_DAYS-1)*TRIALS)], axis=0), np.mean(rewards[int((BG_INTACT_DAYS+1)*TRIALS-100):int((BG_INTACT_DAYS+1)*TRIALS)], axis=0)
+    else:
         return np.mean(rewards[-100:], axis=0)
 

@@ -1,0 +1,7 @@
+# Lesion parameters for the Dual Pathway RL songbird model
+# Each parameter has a section and a list of values to test
+# The sections correspond to the configuration structure in the main model
+# Comment or uncomment parameters as needed for robustness testing
+BG_INTACT_DAYS:
+  section: params
+  values: [10, 30, 60] # uuhhh idk man! 
