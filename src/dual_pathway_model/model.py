@@ -473,7 +473,10 @@ def plot_trajectory(obj, syll):
     plt.tight_layout()
     plt.show()
             
-def build_and_run(seed, parameters, NN, lesion = False, plot = False):
+def build_and_run(seed, parameters, NN, lesion = False, 
+                  output_reward= False, 
+                  output_action= False,
+                  plot = False):
     N_SYLL = parameters['params']['N_SYLL']
     DAYS = parameters['params']['DAYS']
     TRIALS = parameters['params']['TRIALS']
@@ -485,6 +488,15 @@ def build_and_run(seed, parameters, NN, lesion = False, plot = False):
         remove_prev_files()
     env = Environment(seed, parameters, NN)
     env.run(parameters, ANNEALING)
+    output = {}
+    if output_reward:
+        rewards_output = env.rewards[:,:,:] #.reshape(env.DAYS*env.TRIALS, env.N_SYLL)
+        output['rewards'] = rewards_output
+    if output_action:
+        actions_output = env.actions[:,:,:,:] #.reshape(env.DAYS*env.TRIALS, env.N_SYLL, env.mc_size)
+        output['actions'] = actions_output
+    if output_reward or output_action:
+        return output
     for i in range(N_SYLL):
         if plot:
             env.save_trajectory(i)
