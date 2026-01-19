@@ -60,9 +60,10 @@ class NN:
             self.W_bg_ra[i*self.bg_size//self.n_bg_clusters : (i+1)*self.bg_size//self.n_bg_clusters] *= [j for j in segPath for r in range(self.ra_size//self.n_bg_clusters)]
 
             
-    def forward(self, hvc_array, parameters):
+    def forward(self, hvc_array, parameters, trial):
         BG_NOISE = parameters['params']['BG_NOISE']
         RA_NOISE = parameters['params']['RA_NOISE']
+        BG_NOISE_DECAY = parameters['params']['BG_NOISE_DECAY']
         BG_SIG_SLOPE = parameters['params']['BG_SIG_SLOPE']
         RA_SIG_SLOPE = parameters['params']['RA_SIG_SLOPE']
         BG_sig_MID = parameters['params']['BG_sig_MID']
@@ -71,6 +72,8 @@ class NN:
         balance_factor = parameters['params']['balance_factor']
         # count number of 1 in hvc, divide bg by that number
         num_ones = np.count_nonzero(hvc_array == 1)
+        if trial is not None:
+            BG_NOISE_size = BG_NOISE*np.exp(-trial*BG_NOISE_DECAY/60_000)
         self.bg = new_sigmoid(np.dot(hvc_array/num_ones, self.W_hvc_bg) + np.random.normal(0, BG_NOISE, self.bg_size), m = BG_SIG_SLOPE, a = BG_sig_MID)
         ra_noise = np.random.normal(0, RA_NOISE, self.ra_size)* HEBBIAN_LEARNING
         self.ra = new_sigmoid(np.dot(self.bg, self.W_bg_ra/np.sum(self.W_bg_ra, axis=0)) * balance_factor * self.bg_influence + np.dot(hvc_array/num_ones, self.W_hvc_ra)* HEBBIAN_LEARNING + ra_noise, m = RA_SIG_SLOPE, a = RA_sig_MID) 
@@ -218,7 +221,7 @@ class Environment:
                     input_hvc = np.zeros(self.hvc_size)
                     input_hvc[syll] = 1
                     # reward, action and baseline
-                    action, ra, bg, action_bg = self.model.forward(input_hvc, parameters)
+                    action, ra, bg, action_bg = self.model.forward(input_hvc, parameters, iter)
                     if day < self.HEARING_INTACT_DAYS:
                         reward = self.get_reward(action, syll)
                         reward_baseline = 0
