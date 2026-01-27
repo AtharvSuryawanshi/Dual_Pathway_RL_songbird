@@ -9,7 +9,7 @@ Clone the repository:
 
 ```bash
 # Clone the repo 
-git clone "https://github.com/AtharvSuryawanshi/Dual_Pathway_RL_songbird/tree/library"
+git clone -b library https://github.com/AtharvSuryawanshi/Dual_Pathway_RL_songbird.git
 
 # Create and activate environment
 conda create --name dual_pathway_env python=3.12
