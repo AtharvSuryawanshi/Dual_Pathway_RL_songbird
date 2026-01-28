@@ -47,6 +47,9 @@ params:
   RA_sig_MID: 0
   N_BG_CLUSTERS: 2
 
+# Memory efficieny params
+  RECORD_WEIGHTS: 1
+
 const:
   HVC_SIZE: 100
   BG_SIZE: 50

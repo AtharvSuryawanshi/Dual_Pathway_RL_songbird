@@ -104,6 +104,7 @@ class Environment:
         self.LANDSCAPE = parameters['params']['LANDSCAPE']
         self.n_distractors = parameters['params']['N_DISTRACTORS']
         self.target_width = parameters['params']['TARGET_WIDTH']
+        self.RECORD_WEIGHTS = parameters['params']['RECORD_WEIGHTS']
         self.seed = seed
         np.random.seed(seed)
         if self.LANDSCAPE == 0:
@@ -135,9 +136,9 @@ class Environment:
         self.actions_bg = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL, self.mc_size))
         self.hvc_bg_array = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
         self.hvc_ra_array = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL))
-
-        self.hvc_bg_array_all = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL, self.hvc_size, self.bg_size))   
-        self.hvc_ra_array_all = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL, self.hvc_size, self.ra_size)) 
+        if self.RECORD_WEIGHTS:
+            self.hvc_bg_array_all = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL, self.hvc_size, self.bg_size))   
+            self.hvc_ra_array_all = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL, self.hvc_size, self.ra_size)) 
         # self.hvc_bg_array_all = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL, 8))   
         # self.hvc_ra_array_all = np.zeros((self.DAYS, self.TRIALS, self.N_SYLL, 8))
         
@@ -262,8 +263,9 @@ class Environment:
                     self.hvc_bg_array[day, iter, syll] = self.model.W_hvc_bg[syll,1]
                     self.bg_out[day, iter, syll] = bg[1]
                     self.hvc_ra_array[day, iter, syll] = self.model.W_hvc_ra[syll,1]
-                    self.hvc_ra_array_all[day, iter, syll, :] = self.model.W_hvc_ra[syll,:]
-                    self.hvc_bg_array_all[day, iter, syll, :] = self.model.W_hvc_bg[syll,:]
+                    if self.RECORD_WEIGHTS:
+                        self.hvc_ra_array_all[day, iter, syll, :] = self.model.W_hvc_ra[syll,:]
+                        self.hvc_bg_array_all[day, iter, syll, :] = self.model.W_hvc_bg[syll,:]
                     if iter == 0:
                         hvc_bg_start = self.model.W_hvc_bg.copy()
                     if iter == self.TRIALS-1:
