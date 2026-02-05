@@ -502,16 +502,20 @@ def build_and_run(seed, parameters, NN, lesion = False,
         output['actions'] = actions_output
     if output_reward or output_action:
         return output
+    outputs = []
     for i in range(N_SYLL):
         if plot:
             env.save_trajectory(i)
             env.save_results(i)
             if ANNEALING:
                 env.save_dw_day(i)
-        rewards = env.rewards[:,:,0].reshape(env.DAYS*env.TRIALS)
+        rewards = env.rewards[:,:,i].reshape(env.DAYS*env.TRIALS)
+        outputs.append(np.mean(rewards[-100:], axis=0))
         # return rewards after lesion and before lesion 
     if lesion: # terminal performance; before lesion; after lesion
         return np.mean(rewards[-100:], axis=0), np.mean(rewards[int((BG_INTACT_DAYS-1)*TRIALS-100):int((BG_INTACT_DAYS-1)*TRIALS)], axis=0), np.mean(rewards[int((BG_INTACT_DAYS+1)*TRIALS-100):int((BG_INTACT_DAYS+1)*TRIALS)], axis=0)
     else:
-        return np.mean(rewards[-100:], axis=0)
+        if N_SYLL == 1:
+            return outputs[0]
+        return outputs
 
