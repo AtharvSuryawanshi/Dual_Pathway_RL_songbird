@@ -193,7 +193,7 @@ class Environment:
              
     def run(self, parameters, annealing = False):
         # modes 
-        self.annealing = annealing
+        self.annealing = parameters['params']['ANNEALING']
         self.model.bg_influence = True
         # learning parameters
         self.learning_rate = parameters['params']['LEARNING_RATE_RL']
