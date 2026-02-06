@@ -1,7 +1,7 @@
 params:
 # Simulation parameters
   TRIALS: 1000
-  DAYS: 61 # 0 to 60
+  DAYS: 60 # 0 to 60
   BG_INTACT_DAYS: 61 # i.e. 
   HEARING_INTACT_DAYS: 61
   N_SYLL: 4
