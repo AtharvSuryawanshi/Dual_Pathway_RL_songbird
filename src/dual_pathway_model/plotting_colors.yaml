@@ -2,3 +2,9 @@ violin_plot_colors:
   color_violin : 'lightgrey'
   color_bar : 'grey'
   color_strip : 'black'
+
+colors_pathway:
+  palette: colorblind
+  cortical_idx: 0
+  bg_idx: 1
+  motor: black
