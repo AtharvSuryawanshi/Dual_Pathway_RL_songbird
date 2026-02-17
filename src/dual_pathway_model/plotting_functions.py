@@ -242,10 +242,10 @@ def plot_lansdcape_only(obj, syll, plot_colors = plot_colors):
         # axs.scatter(target_pos[1], target_pos[0], s=100, c='green', marker='x', label='Target')
     if obj.LANDSCAPE == 0:
         print("Plotting artificial landscape")
-        plot_artificial()
+        plot_artificial(obj, syll, axs, levels_, cmap, if_contour=True)
     else:
         print("Plotting syrinx landscape")
-        plot_syrinx()
+        plot_syrinx(obj, syll, axs, levels_, cmap, if_contour=True)
     # if not force_landscape:
     #     if obj.LANDSCAPE == 0:
     #         print("No force artificial landscape")
