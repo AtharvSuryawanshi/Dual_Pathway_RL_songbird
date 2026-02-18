@@ -17,7 +17,6 @@ from pathlib import Path
 # directory where robustness.py lives
 HERE = Path(__file__).resolve().parent
 
-
 NOS_SEEDS = 100
 time_per_iter = 5.5
 state = 5
@@ -30,6 +29,11 @@ parameters = update_params(params_base,
                                 #    "params.DAYS": 2, # for quick testing
                                }
                                )
+
+# Time required
+time_per_iter = 55 # seconds per seed (for 4 syllables)
+total_time = time_per_iter * NOS_SEEDS
+print(f"Total time required: {total_time/60:.2f} minutes")
 
 # Hoping 4 syllables only
 N_SYLL = parameters['params']['N_SYLL']
