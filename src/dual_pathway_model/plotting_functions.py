@@ -6,6 +6,7 @@ from pathlib import Path
 import yaml
 from matplotlib.colors import LinearSegmentedColormap
 from dual_pathway_model.functions import *
+from matplotlib.collections import LineCollection
 
 # Parameters 
 # Get path relative to this file
@@ -169,7 +170,7 @@ def plot_artificial(obj, syll, axs, levels_, cmap, if_contour):
     axs.set_xticks([-limit, 0, limit], [-1, 0, 1])
     axs.set_yticks([-limit, 0, limit], [-1, 0, 1])
 
-def plot_syrinx(obj, syll, axs, levels_, cmap, if_contour):
+def plot_syrinx(obj, syll, axs, levels_, cmap, if_contour, contour_alpha=1):
     if obj.N_SYLL > 4:
         raise ValueError('Only 4 syllables are available in the syrinx landscape')
     obj.syrinx_contours = []
@@ -184,7 +185,7 @@ def plot_syrinx(obj, syll, axs, levels_, cmap, if_contour):
     Z = obj.syrinx_contours[syll]
     target_pos = obj.syrinx_targets[syll]
     if if_contour:
-        axs.contour(Z.T, levels=10, extent=[-1, 1, -1, 1], colors='k', linewidths=1, alpha=1)
+        axs.contour(Z.T, levels=10, extent=[-1, 1, -1, 1], colors='k', linewidths=1, alpha=contour_alpha)
     cs = axs.contourf(Z.T, cmap=cmap, extent=[-1, 1, -1, 1], levels=levels_)
     # cbar = fig.colorbar(cs, ax=axs)
     # cbar.set_label('Performance Metric (R)', fontsize=20, rotation=270)
@@ -280,7 +281,7 @@ def plot_scatter_traj(obj, syll, day_i, day_f, every_nth_point,
         plot_artificial(obj, syll, axs, levels_, cmap, if_contour=True)
     else:
         print("Plotting syrinx landscape")
-        plot_syrinx(obj, syll, axs, levels_, cmap, if_contour=True)
+        plot_syrinx(obj, syll, axs, levels_, cmap, if_contour=True, contour_alpha=.25)
     
     # Plot agent trajectory
     x_traj, y_traj = zip(*obj.actions[:, :, syll, :].reshape(-1, 2))
@@ -288,37 +289,66 @@ def plot_scatter_traj(obj, syll, day_i, day_f, every_nth_point,
     #     x_traj[day_i * TRIALS: day_f * TRIALS][::every_nth_point],
     #     y_traj[day_i * TRIALS: day_f * TRIALS][::every_nth_point], color = color_motor, label='Agent Trajectory', alpha=.5, linewidth=0.0, marker='.', markersize=1
     # )
-    if plot_smooth_traj:
-        xtraj_smooth = running_mean_dynamic(np.array(x_traj), N_i=N_i, N_f=N_f, steepness=steepness)
-        ytraj_smooth = running_mean_dynamic(np.array(y_traj), N_i=N_i, N_f=N_f, steepness=steepness)
-        axs.plot(
-            xtraj_smooth[day_i * TRIALS: day_f * TRIALS], #[::every_nth_point],
-            ytraj_smooth[day_i * TRIALS: day_f * TRIALS],#[::every_nth_point],
-            color = color_motor, label='Motor Trajectory', alpha=.5, linewidth=0.5, marker='.', markersize=1, ls='-'
-        )
+    # if plot_smooth_traj:
+    #     xtraj_smooth = running_mean_dynamic(np.array(x_traj), N_i=N_i, N_f=N_f, steepness=steepness)
+    #     ytraj_smooth = running_mean_dynamic(np.array(y_traj), N_i=N_i, N_f=N_f, steepness=steepness)
+    #     axs.plot(
+    #         xtraj_smooth[day_i * TRIALS: day_f * TRIALS], #[::every_nth_point],
+    #         ytraj_smooth[day_i * TRIALS: day_f * TRIALS],#[::every_nth_point],
+    #         color = color_motor, label='Motor Trajectory', alpha=.5, linewidth=0.5, marker='.', markersize=1, ls='-'
+    #     )
     
-    axs.plot(
+    # axs.plot(
+    #     x_traj[day_i * TRIALS: day_f * TRIALS][::every_nth_point],
+    #     y_traj[day_i * TRIALS: day_f * TRIALS][::every_nth_point], color = 'white', label='Agent Trajectory', alpha=1, linewidth=0.0, marker='.', markersize=3, zorder=3
+    # )
+    # axs.plot(
+    #     x_traj[day_i * TRIALS: day_f * TRIALS][::every_nth_point],
+    #     y_traj[day_i * TRIALS: day_f * TRIALS][::every_nth_point], color = color_motor, label='Agent Trajectory', alpha=1, linewidth=0.0, marker='.', markersize=2, zorder=3
+    # )
+
+    
+    if plot_smooth_traj:
+        xtraj_smooth = running_mean(np.array(x_traj), N = 20)
+        ytraj_smooth = running_mean(np.array(y_traj), N = 20)
+        
+        X = xtraj_smooth[day_i * TRIALS: day_f * TRIALS]
+        Y = ytraj_smooth[day_i * TRIALS: day_f * TRIALS]
+
+        V = [np.stack([x, y]) for x, y in zip(X, Y)]
+        V = np.array(V).reshape((1, len(X), 2))
+        lines = LineCollection(V, color="red", alpha=.5, linewidth=1, zorder=100)
+        axs.add_collection(lines)
+
+    axs.scatter(
         x_traj[day_i * TRIALS: day_f * TRIALS][::every_nth_point],
-        y_traj[day_i * TRIALS: day_f * TRIALS][::every_nth_point], color = 'white', label='Agent Trajectory', alpha=1, linewidth=0.0, marker='.', markersize=3, zorder=3
+        y_traj[day_i * TRIALS: day_f * TRIALS][::every_nth_point], 25, color = color_motor, label='Agent Trajectory', edgecolors='none', alpha=.1, marker='.', zorder=3
     )
-    axs.plot(
-        x_traj[day_i * TRIALS: day_f * TRIALS][::every_nth_point],
-        y_traj[day_i * TRIALS: day_f * TRIALS][::every_nth_point], color = color_motor, label='Agent Trajectory', alpha=1, linewidth=0.0, marker='.', markersize=2, zorder=3
+
+    x = x_traj[day_i * TRIALS: day_f * TRIALS][0::1000]
+    y = y_traj[day_i * TRIALS: day_f * TRIALS][0::1000]
+    c_val = np.arange(len(x))
+    axs.scatter(
+        x, y, 200, c = 'white', label='Agent Trajectory', edgecolors='none', alpha=1, marker='.', zorder=900
     )
+    axs.scatter(
+        x, y, 150, c = c_val, label='Agent Trajectory', edgecolors='none', alpha=1, marker='.', zorder=1000, cmap='magma'
+    )
+
     
     axs.scatter(x_traj[0], y_traj[0],
                 s=150, c='black',
-                marker='s', zorder=5, label='Starting Point')
+                marker='s', zorder=500, label='Starting Point')
     axs.scatter(x_traj[-1], y_traj[-1],
                 s=150, c='white',
-                marker='X', zorder=5, label='Ending Point')
+                marker='X', zorder=500, label='Ending Point')
     axs.scatter(x_traj[0], y_traj[0],
                 s=50, c='white',
-                marker='s', zorder=6, label='Starting Point')
+                marker='s', zorder=600, label='Starting Point')
     axs.scatter(x_traj[-1], y_traj[-1],
                 s=50, c='black',
-                marker='x', zorder=6, label='Ending Point')
-
+                marker='x', zorder=600, label='Ending Point')
+    
     # Labels
     axs.set_ylabel(r'$P$', fontsize=22)
     axs.set_xlabel(r'$T$', fontsize=22)
@@ -331,6 +361,77 @@ def plot_scatter_traj(obj, syll, day_i, day_f, every_nth_point,
     plt.show()
 
 
+def plot_scatter_traj_daywise(obj, syll, day_i, day_f, every_nth_point,
+                      plot_smooth_traj = False, N_i=5, N_f=1, steepness=20, figsize=(10,10), plot_colors = plot_colors):
+    fig, axs = plt.subplots(figsize=figsize)
+    cmap = color_contour_bckg # Match the colormap style from plot_landscape
+    levels_ = 50
+    TRIALS = obj.TRIALS
+
+    # Plot background landscape
+    if obj.LANDSCAPE == 0:
+        print("Plotting artificial landscape")
+        plot_artificial(obj, syll, axs, levels_, cmap, if_contour=True)
+    else:
+        print("Plotting syrinx landscape")
+        plot_syrinx(obj, syll, axs, levels_, cmap, if_contour=True, contour_alpha=.25)
+    
+    # Plot agent trajectory
+    x_traj, y_traj = zip(*obj.actions[:, :, syll, :].reshape(-1, 2))
+
+    if plot_smooth_traj:
+        xtraj_smooth = running_mean(np.array(x_traj), N = 20)
+        ytraj_smooth = running_mean(np.array(y_traj), N = 20)
+
+        X = xtraj_smooth[day_i * TRIALS: day_f * TRIALS]
+        Y = ytraj_smooth[day_i * TRIALS: day_f * TRIALS]
+
+        
+        V = [np.stack([x, y]) for x, y in zip(X, Y)]
+        V = np.array(V).reshape((1, len(X), 2))
+        lines = LineCollection(V, color=color_motor, alpha=.5, linewidth=1, zorder=100)
+        axs.add_collection(lines)
+        
+
+    axs.scatter(
+        x_traj[day_i * TRIALS: day_f * TRIALS][::every_nth_point],
+        y_traj[day_i * TRIALS: day_f * TRIALS][::every_nth_point], 5, c = 'black', label='Agent Trajectory', edgecolors='none', alpha=.1, marker='.', zorder=3, cmap='magma'
+    )
+
+    x = x_traj[day_i * TRIALS: day_f * TRIALS][0::1000]
+    y = y_traj[day_i * TRIALS: day_f * TRIALS][0::1000]
+    c_val = np.arange(len(x))
+    axs.scatter(
+        x, y, 100, c = 'white', label='Agent Trajectory', edgecolors='none', alpha=1, marker='.', zorder=3
+    )
+    axs.scatter(
+        x, y, 50, c = c_val, label='Agent Trajectory', edgecolors='none', alpha=1, marker='.', zorder=5, cmap='magma'
+    )
+
+    
+    axs.scatter(x_traj[0], y_traj[0],
+                s=150, c='black',
+                marker='s', zorder=500, label='Starting Point')
+    axs.scatter(x_traj[-1], y_traj[-1],
+                s=150, c='white',
+                marker='X', zorder=500, label='Ending Point')
+    axs.scatter(x_traj[0], y_traj[0],
+                s=50, c='white',
+                marker='s', zorder=600, label='Starting Point')
+    axs.scatter(x_traj[-1], y_traj[-1],
+                s=50, c='black',
+                marker='x', zorder=600, label='Ending Point')
+
+    # Labels
+    axs.set_ylabel(r'$P$', fontsize=22)
+    axs.set_xlabel(r'$T$', fontsize=22)
+    # axs.set_ylabel(r'$P_{\alpha}$ (Pressure)', fontsize=22)
+    # axs.set_xlabel(r'$P_{\beta}$ (Tension)', fontsize=22)
+    axs.tick_params(labelsize=16)
+    # axs.legend()
+    plt.tight_layout()
+    # plt.savefig(figures_path+'contour_syll'+str(syll+1)+'.png')
+    plt.show()
 
 ###### PLOT MOTOR OUTPUTS ######
 def plot_output(obj, syll):
