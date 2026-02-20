@@ -172,7 +172,7 @@ color_contour_bckg = LinearSegmentedColormap.from_list('change_this', ['white', 
 
 
 # LANDSCAPE PLOT
-def plot_artificial(obj, syll, axs, levels_, cmap, if_contour):
+def plot_artificial(obj, syll, axs, levels_, cmap, if_contour, contour_alpha=1):
     limit = obj.limit
     x, y = np.linspace(-limit, limit, 50), np.linspace(-limit, limit, 50)
     X, Y = np.meshgrid(x, y)
@@ -187,6 +187,8 @@ def plot_artificial(obj, syll, axs, levels_, cmap, if_contour):
     # cbar.ax.set_yticks([0, 1])
     axs.set_xticks([-limit, 0, limit], [-1, 0, 1])
     axs.set_yticks([-limit, 0, limit], [-1, 0, 1])
+    axs.set_ylabel(r'$P$', fontsize=30)
+    axs.set_xlabel(r'$T$', fontsize=30)
 
 def plot_syrinx(obj, syll, axs, levels_, cmap, if_contour, contour_alpha=1):
     if obj.N_SYLL > 4:
@@ -211,6 +213,8 @@ def plot_syrinx(obj, syll, axs, levels_, cmap, if_contour, contour_alpha=1):
     # cbar.ax.set_yticks([0, 1])
     axs.set_xticks([-1, 1], [0, 1])
     axs.set_yticks([-1, 1], [0, 0.2])
+    axs.set_ylabel(r'$Pressure (P)$', fontsize=30)
+    axs.set_xlabel(r'$Tension (T)$', fontsize=30)
     # axs.scatter(target_pos[1], target_pos[0], s=100, c='green', marker='x', label='Target')
 
 
@@ -309,10 +313,10 @@ def plot_scatter_traj(obj, syll, day_i, day_f, every_nth_point,
 
 
 
-def plot_lansdcape_only(obj, syll, plot_colors = plot_colors):
+def plot_lansdcape_only(obj, syll, contour_levels=10, contour_alpha=1, plot_colors = plot_colors):
     fig, axs = plt.subplots(figsize=(9, 9))
     cmap = LinearSegmentedColormap.from_list('change_this', ['white', 'white']) # 'Greys' color_contour_bckg #'Purples' #LinearSegmentedColormap.from_list('white_to_black', ['white', 'rebeccapurple'])
-    levels_ = 50
+    levels_ = contour_levels
     ##### Artificial Landscapes #####
     # def plot_artificial():
     #     limit = obj.limit
@@ -356,10 +360,12 @@ def plot_lansdcape_only(obj, syll, plot_colors = plot_colors):
         # axs.scatter(target_pos[1], target_pos[0], s=100, c='green', marker='x', label='Target')
     if obj.LANDSCAPE == 0:
         print("Plotting artificial landscape")
-        plot_artificial(obj, syll, axs, levels_, cmap, if_contour=True)
+        plot_artificial(obj, syll, axs, levels_, cmap, if_contour=True, contour_alpha=contour_alpha)
     else:
         print("Plotting syrinx landscape")
-        plot_syrinx(obj, syll, axs, levels_, cmap, if_contour=True)
+        plot_syrinx(obj, syll, axs, levels_, cmap, if_contour=True, contour_alpha=contour_alpha)
+        axs.set_ylabel(r'$Pressure (P)$', fontsize=30)
+        axs.set_xlabel(r'$Tension (T)$', fontsize=30)
     # if not force_landscape:
     #     if obj.LANDSCAPE == 0:
     #         print("No force artificial landscape")
@@ -374,12 +380,10 @@ def plot_lansdcape_only(obj, syll, plot_colors = plot_colors):
 
     # axs.set_ylabel(r'$P_{\alpha}$', fontsize=22)
     # axs.set_xlabel(r'$P_{\beta}$', fontsize=22)
-    axs.set_ylabel(r'$P$', fontsize=22)
-    axs.set_xlabel(r'$T$', fontsize=22)
-    axs.tick_params(labelsize=16)
-    axs.legend()
+    axs.tick_params(labelsize=20)
+    # axs.legend()
     plt.tight_layout()
-    plt.show()
+    # plt.show()
 
 
 ###### PLOT MOTOR OUTPUTS ######
