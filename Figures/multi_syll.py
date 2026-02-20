@@ -27,6 +27,7 @@ seeds.sort()
 parameters = update_params(params_base, 
                                **{
                                 #    "params.DAYS": 2, # for quick testing
+                                      "params.LANDSCAPE": 1
                                }
                                )
 
@@ -37,6 +38,9 @@ print(f"Total time required: {total_time/60:.2f} minutes")
 
 # Hoping 4 syllables only
 N_SYLL = parameters['params']['N_SYLL']
+LANDSCAPE = parameters['params']['LANDSCAPE']
+if LANDSCAPE == 0:
+    raise Warning("LANDSCAPE is artificial, are you sure?")  
 terminal_performance = np.zeros((NOS_SEEDS, N_SYLL))
 
 if parameters["params"]["N_SYLL"] != 4:
