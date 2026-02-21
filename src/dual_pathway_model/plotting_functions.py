@@ -8,6 +8,8 @@ from matplotlib.colors import LinearSegmentedColormap
 from dual_pathway_model.functions import *
 from matplotlib.collections import LineCollection
 
+print('Testing')
+
 # Parameters 
 # Get path relative to this file
 config_path = Path(__file__).parent / "plotting_colors.yaml"
@@ -158,7 +160,7 @@ from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.collections import LineCollection
 # import lin
 import yaml
-color_contour_bckg = LinearSegmentedColormap.from_list('change_this', ['white', 'white']) 
+# color_contour_bckg = LinearSegmentedColormap.from_list('change_this', ['white', 'white']) 
 # Parameters 
 # Get path relative to this file
 # config_path = Path(__file__).parent / "plotting_colors.yaml"
@@ -172,23 +174,26 @@ color_contour_bckg = LinearSegmentedColormap.from_list('change_this', ['white', 
 
 
 # LANDSCAPE PLOT
+
 def plot_artificial(obj, syll, axs, levels_, cmap, if_contour, contour_alpha=1, heatmap=False):
     limit = obj.limit
     x, y = np.linspace(-limit, limit, 50), np.linspace(-limit, limit, 50)
     X, Y = np.meshgrid(x, y)
     Z = obj.get_reward([X, Y], syll)
-    if heatmap:
-        contour = axs.contourf(X, Y, Z, levels=levels_, cmap='Greys')
+    # Z should be normalised for the simulations - max 1 min 0
     if if_contour:
-        axs.contour(X, Y, Z, levels=levels_, colors='k', linewidths=1, alpha=0.9)
-    # cbar = fig.colorbar(contour, ax=axs)
-    # cbar.set_label('Performance Metric (R)', fontsize=20, rotation=270)
-    # cbar.ax.tick_params(labelsize=18)
-    # cbar.ax.set_yticks([0, 1])
+        axs.contour(X, Y, Z, levels=levels_, colors='k', linewidths=1, alpha=contour_alpha)
+    if heatmap:
+        cs = axs.contourf(Z, cmap=cmap, extent=[-limit, limit, -limit, limit], vmin=0, vmax=1, levels=levels_, alpha=contour_alpha)
+        cbar = plt.colorbar(cs, ax=axs, pad=.05)
+        cbar.set_label('Performance Metric (R)', fontsize=30, rotation=270, labelpad=20)
+        cbar.ax.tick_params(labelsize=20)
+        cbar.ax.set_yticks([0, 1])
     axs.set_xticks([-limit, 0, limit], [-1, 0, 1])
     axs.set_yticks([-limit, 0, limit], [-1, 0, 1])
     axs.set_ylabel(r'$X$', fontsize=30)
     axs.set_xlabel(r'$Y$', fontsize=30)
+    axs.tick_params(labelsize=20)
 
 def plot_syrinx(obj, syll, axs, levels_, cmap, if_contour, contour_alpha=1, heatmap=False):
     if obj.N_SYLL > 4:
@@ -204,36 +209,36 @@ def plot_syrinx(obj, syll, axs, levels_, cmap, if_contour, contour_alpha=1, heat
     obj.syrinx_contours = np.array(obj.syrinx_contours)
     Z = obj.syrinx_contours[syll]
     target_pos = obj.syrinx_targets[syll]
-    if heatmap:
-        contour = axs.contourf(X, Y, Z, levels=levels_, cmap='Greys')
     if if_contour:
         axs.contour(Z.T, levels=levels_, extent=[-1, 1, -1, 1], colors='k', linewidths=1, alpha=contour_alpha)
-    cs = axs.contourf(Z.T, cmap=cmap, extent=[-1, 1, -1, 1], levels=levels_)
-    # cbar = fig.colorbar(cs, ax=axs)
-    # cbar.set_label('Performance Metric (R)', fontsize=20, rotation=270)
-    # cbar.ax.tick_params(labelsize=18)
-    # cbar.ax.set_yticks([0, 1])
+    if heatmap:
+        cs = axs.contourf(Z.T, cmap=cmap, extent=[-1, 1, -1, 1], vmin=0, vmax=1, levels=levels_, alpha=contour_alpha)
+        cbar = plt.colorbar(cs, ax=axs, pad=.05)
+        cbar.set_label('Performance Metric (R)', fontsize=30, rotation=270, labelpad=20)
+        cbar.ax.tick_params(labelsize=20)
+        cbar.ax.set_yticks([0, 1])
     axs.set_xticks([-1, 1], [0, 1])
     axs.set_yticks([-1, 1], [0, 0.2])
     axs.set_ylabel(r'$Pressure (P)$', fontsize=30)
     axs.set_xlabel(r'$Tension (T)$', fontsize=30)
+    axs.tick_params(labelsize=20)
     # axs.scatter(target_pos[1], target_pos[0], s=100, c='green', marker='x', label='Target')
 
 
 def plot_scatter_traj(obj, syll, day_i, day_f, every_nth_point,
-                      plot_smooth_traj = False, N_i=5, N_f=1, steepness=20, figsize=(10,10), scatter_alpha = 0.5, plot_daily_start_points = False, heatmap=False):
+                      plot_smooth_traj = False, figsize=(10,10), scatter_alpha = 0.5, plot_daily_start_points = False, if_contour=False, contour_alpha=1, heatmap=False):
     fig, axs = plt.subplots(figsize=figsize)
-    cmap = color_contour_bckg # Match the colormap style from plot_landscape
+    cmap = 'Greys'# color_contour_bckg # cmap param doesn't work # Match the colormap style from plot_landscape
     levels_ = 12 # 12 fix!
     TRIALS = obj.TRIALS
 
     # Plot background landscape
     if obj.LANDSCAPE == 0:
         print("Plotting artificial landscape")
-        plot_artificial(obj, syll, axs, levels_, cmap, if_contour=True, contour_alpha=.2, heatmap=heatmap)
+        plot_artificial(obj, syll, axs, levels_, cmap, if_contour=if_contour, contour_alpha=contour_alpha, heatmap=heatmap)
     else:
         print("Plotting syrinx landscape")
-        plot_syrinx(obj, syll, axs, levels_, cmap, if_contour=True, contour_alpha=.2, heatmap=heatmap)
+        plot_syrinx(obj, syll, axs, levels_, cmap, if_contour=if_contour, contour_alpha=contour_alpha, heatmap=heatmap)
     
     # Plot agent trajectory
     x_traj, y_traj = zip(*obj.actions[:, :, syll, :].reshape(-1, 2))
@@ -260,8 +265,14 @@ def plot_scatter_traj(obj, syll, day_i, day_f, every_nth_point,
     # )
 
     
+
+    axs.scatter(
+        x_traj[day_i * TRIALS: day_f * TRIALS][::every_nth_point],
+        y_traj[day_i * TRIALS: day_f * TRIALS][::every_nth_point], 25, color = color_motor, label='Agent Trajectory', edgecolors='none', alpha=scatter_alpha, marker='.', zorder=5
+    )
+    
     if plot_smooth_traj:
-        running_smooth = 10
+        running_smooth = 20
         xtraj_smooth = running_mean(np.array(x_traj), N = running_smooth)
         ytraj_smooth = running_mean(np.array(y_traj), N = running_smooth)
         
@@ -270,13 +281,9 @@ def plot_scatter_traj(obj, syll, day_i, day_f, every_nth_point,
 
         V = [np.stack([x, y]) for x, y in zip(X, Y)]
         V = np.array(V).reshape((1, len(X), 2))
-        lines = LineCollection(V, color="green", alpha=.5, linewidth=1, zorder=100)
+        lines = LineCollection(V, color=color_motor, alpha=.4, linewidth=1, zorder=100)
         axs.add_collection(lines)
 
-    axs.scatter(
-        x_traj[day_i * TRIALS: day_f * TRIALS][::every_nth_point],
-        y_traj[day_i * TRIALS: day_f * TRIALS][::every_nth_point], 25, color = color_motor, label='Agent Trajectory', edgecolors='none', alpha=scatter_alpha, marker='.', zorder=5
-    )
     if plot_daily_start_points:
         x = x_traj[day_i * TRIALS: day_f * TRIALS][0::1000]
         y = y_traj[day_i * TRIALS: day_f * TRIALS][0::1000]
@@ -303,21 +310,22 @@ def plot_scatter_traj(obj, syll, day_i, day_f, every_nth_point,
                 marker='x', zorder=600, label='Ending Point')
     
     # Labels
-    axs.set_ylabel(r'$P$', fontsize=30)
-    axs.set_xlabel(r'$T$', fontsize=30)
+    # axs.set_ylabel(r'$P$', fontsize=30)
+    # axs.set_xlabel(r'$T$', fontsize=30)
     # axs.set_ylabel(r'$P_{\alpha}$ (Pressure)', fontsize=22)
     # axs.set_xlabel(r'$P_{\beta}$ (Tension)', fontsize=22)
-    axs.tick_params(labelsize=20)
+    # axs.tick_params(labelsize=20)
     # axs.legend()
     plt.tight_layout()
+
     # plt.savefig(figures_path+'contour_syll'+str(syll+1)+'.png')
     plt.show()
 
 
 
-def plot_lansdcape_only(obj, syll, contour_levels=10, contour_alpha=1, plot_colors = plot_colors):
+def plot_landscape_only(obj, syll, contour_levels=12, contour_alpha=1, plot_colors = plot_colors, if_contour=False, heatmap=False):
     fig, axs = plt.subplots(figsize=(9, 9))
-    cmap = LinearSegmentedColormap.from_list('change_this', ['white', 'white']) # 'Greys' color_contour_bckg #'Purples' #LinearSegmentedColormap.from_list('white_to_black', ['white', 'rebeccapurple'])
+    cmap = 'Greys' # LinearSegmentedColormap.from_list('change_this', ['white', 'white']) # 'Greys' color_contour_bckg #'Purples' #LinearSegmentedColormap.from_list('white_to_black', ['white', 'rebeccapurple'])
     levels_ = contour_levels
     ##### Artificial Landscapes #####
     # def plot_artificial():
@@ -362,10 +370,11 @@ def plot_lansdcape_only(obj, syll, contour_levels=10, contour_alpha=1, plot_colo
         # axs.scatter(target_pos[1], target_pos[0], s=100, c='green', marker='x', label='Target')
     if obj.LANDSCAPE == 0:
         print("Plotting artificial landscape")
-        plot_artificial(obj, syll, axs, levels_, cmap, if_contour=True, contour_alpha=contour_alpha)
+        plot_artificial(obj, syll, axs, levels_, cmap, contour_alpha=contour_alpha, if_contour=if_contour, heatmap=heatmap)
     else:
         print("Plotting syrinx landscape")
-        plot_syrinx(obj, syll, axs, levels_, cmap, if_contour=True, contour_alpha=contour_alpha)
+        plot_syrinx(obj, syll, axs, levels_, cmap, contour_alpha=contour_alpha, if_contour=if_contour, heatmap=heatmap)
+    
     # if not force_landscape:
     #     if obj.LANDSCAPE == 0:
     #         print("No force artificial landscape")
@@ -380,14 +389,14 @@ def plot_lansdcape_only(obj, syll, contour_levels=10, contour_alpha=1, plot_colo
 
     # axs.set_ylabel(r'$P_{\alpha}$', fontsize=22)
     # axs.set_xlabel(r'$P_{\beta}$', fontsize=22)
-    axs.tick_params(labelsize=20)
+    # axs.tick_params(labelsize=20)
     # axs.legend()
     plt.tight_layout()
     # plt.show()
 
 
 ###### PLOT MOTOR OUTPUTS ######
-def plot_output(obj, syll):
+def plot_output(obj, syll, skip_size=20):
     figure, (ax1, ax2) = plt.subplots(2,1)
     N_SYLL = obj.N_SYLL # To plot only one syllable at a time, set N_SYLL to 1 and plot the first syllable (syll=0)
     N_DAILY_MOTIFS = obj.TRIALS
@@ -396,8 +405,8 @@ def plot_output(obj, syll):
     LIMIT = 1.5
 
     # Display x axis in days
-    x = np.arange(N_DAILY_MOTIFS)
-    x = x/(N_DAILY_MOTIFS * N_SYLL)
+    x = np.arange(DAYS*N_DAILY_MOTIFS)[::skip_size]
+    # x = x/(N_DAILY_MOTIFS * N_SYLL)
 
     x_bg_traj, y_bg_traj = zip(*obj.actions_bg[:, :, syll, :].reshape(-1, 2))
     ra_actions = obj.actions - obj.actions_bg
@@ -408,12 +417,16 @@ def plot_output(obj, syll):
     y_ra_traj = np.array(y_ra_traj)
 
 
+    ax1.scatter(x, obj.actions[:,:,syll,0].reshape(DAYS*N_DAILY_MOTIFS)[::skip_size], s=1, color=color_motor, alpha=.8, marker='.')
+    ax2.scatter(x, obj.actions[:,:,syll,1].reshape(DAYS*N_DAILY_MOTIFS)[::skip_size], s=1, color=color_motor, alpha=.8, marker='.')
+
+
     # Plot running average of cortical output (brown), BG output (grey) and total output (black)
     # Data
     # for syll in range(N_SYLL):
         # motor outputs
-    ax1.plot(running_mean(obj.actions[:,:,syll,0].reshape(DAYS*N_DAILY_MOTIFS), 1), color=color_motor, lw=1, alpha=.9)
-    ax2.plot(running_mean(obj.actions[:,:,syll,1].reshape(DAYS*N_DAILY_MOTIFS), 1), color=color_motor, lw=1, alpha=.9)
+    # ax1.plot(running_mean(obj.actions[:,:,syll,0].reshape(DAYS*N_DAILY_MOTIFS), window_size), color=color_motor, lw=0, alpha=1, marker=',')
+    # ax2.plot(running_mean(obj.actions[:,:,syll,1].reshape(DAYS*N_DAILY_MOTIFS), window_size), color=color_motor, lw=0, alpha=1, marker=',')
 
     ## RA contribution 
     # ax1.plot(running_mean(x_ra_traj.reshape(DAYS*N_DAILY_MOTIFS), 1), color="brown", lw=1, alpha=.9, label='RA contribution')
@@ -429,8 +442,8 @@ def plot_output(obj, syll):
     #     ax1.plot(obj.centers[syll + 1, 0]*np.ones(N_DAILY_MOTIFS*DAYS),  color='red', linestyle='--', linewidth=1)
     #     ax2.plot(obj.centers[syll + 1, 1]*np.ones(N_DAILY_MOTIFS*DAYS),  color='red', linestyle='--', linewidth=1, label = 'Target')
     # elif N_SYLL == 1:
-    ax1.plot(obj.centers[syll, 1]*np.ones(N_DAILY_MOTIFS*DAYS),  color='grey', linestyle='--', linewidth=1, label = 'Target')
-    ax2.plot(obj.centers[syll, 0]*np.ones(N_DAILY_MOTIFS*DAYS),  color='grey', linestyle='--', linewidth=1)
+    ax1.plot(obj.centers[syll, 1]*np.ones(N_DAILY_MOTIFS*DAYS),  color='grey', linestyle='--', linewidth=1.5, label = 'Target')
+    ax2.plot(obj.centers[syll, 0]*np.ones(N_DAILY_MOTIFS*DAYS),  color='grey', linestyle='--', linewidth=1.5)
 
     # Axis beauty
     # ax1.axvline(x=N_DAYS_INTACT * N_DAILY_MOTIFS, linestyle='--', color='grey', lw=1)

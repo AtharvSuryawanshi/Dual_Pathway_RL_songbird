@@ -7,8 +7,9 @@ from matplotlib.colors import LinearSegmentedColormap
 def running_mean(x, N=5):
         """ Returns the running average of an array. """
         rm = np.convolve(x, np.ones(N)/N, mode='valid')
-        padded_rm = np.ones(np.shape(x)) * rm[-1]
-        padded_rm[:rm.size] = rm
+        padded_rm = np.ones(np.shape(x)) * x # rm[-1]
+        padded_rm[N//2:N//2+rm.size] = rm
+        
 
         return padded_rm
 
@@ -162,6 +163,6 @@ sns_cmap = sns.color_palette("colorblind")
 color_cortical = sns_cmap[0]
 color_bg = sns_cmap[1]
 color_motor = 'k'
-color_contour_bckg = LinearSegmentedColormap.from_list('change_this', ['white', 'white']) # 'Greys' 
+color_contour_bckg = 'Greys' #LinearSegmentedColormap.from_list('change_this', ['white', 'white'])
 color_reward = 'k'
 if_contour = True
