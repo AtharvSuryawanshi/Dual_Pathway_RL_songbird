@@ -172,13 +172,13 @@ color_contour_bckg = LinearSegmentedColormap.from_list('change_this', ['white', 
 
 
 # LANDSCAPE PLOT
-def plot_artificial(obj, syll, axs, levels_, cmap, if_contour, contour_alpha=1):
+def plot_artificial(obj, syll, axs, levels_, cmap, if_contour, contour_alpha=1, heatmap=False):
     limit = obj.limit
     x, y = np.linspace(-limit, limit, 50), np.linspace(-limit, limit, 50)
     X, Y = np.meshgrid(x, y)
     Z = obj.get_reward([X, Y], syll)
-    # If heatmap 
-    # contour = axs.contourf(X, Y, Z, levels=levels_, cmap=cmap)
+    if heatmap:
+        contour = axs.contourf(X, Y, Z, levels=levels_, cmap='Greys')
     if if_contour:
         axs.contour(X, Y, Z, levels=levels_, colors='k', linewidths=1, alpha=0.9)
     # cbar = fig.colorbar(contour, ax=axs)
@@ -187,10 +187,10 @@ def plot_artificial(obj, syll, axs, levels_, cmap, if_contour, contour_alpha=1):
     # cbar.ax.set_yticks([0, 1])
     axs.set_xticks([-limit, 0, limit], [-1, 0, 1])
     axs.set_yticks([-limit, 0, limit], [-1, 0, 1])
-    axs.set_ylabel(r'$P$', fontsize=30)
-    axs.set_xlabel(r'$T$', fontsize=30)
+    axs.set_ylabel(r'$X$', fontsize=30)
+    axs.set_xlabel(r'$Y$', fontsize=30)
 
-def plot_syrinx(obj, syll, axs, levels_, cmap, if_contour, contour_alpha=1):
+def plot_syrinx(obj, syll, axs, levels_, cmap, if_contour, contour_alpha=1, heatmap=False):
     if obj.N_SYLL > 4:
         raise ValueError('Only 4 syllables are available in the syrinx landscape')
     obj.syrinx_contours = []
@@ -204,6 +204,8 @@ def plot_syrinx(obj, syll, axs, levels_, cmap, if_contour, contour_alpha=1):
     obj.syrinx_contours = np.array(obj.syrinx_contours)
     Z = obj.syrinx_contours[syll]
     target_pos = obj.syrinx_targets[syll]
+    if heatmap:
+        contour = axs.contourf(X, Y, Z, levels=levels_, cmap='Greys')
     if if_contour:
         axs.contour(Z.T, levels=levels_, extent=[-1, 1, -1, 1], colors='k', linewidths=1, alpha=contour_alpha)
     cs = axs.contourf(Z.T, cmap=cmap, extent=[-1, 1, -1, 1], levels=levels_)
@@ -219,7 +221,7 @@ def plot_syrinx(obj, syll, axs, levels_, cmap, if_contour, contour_alpha=1):
 
 
 def plot_scatter_traj(obj, syll, day_i, day_f, every_nth_point,
-                      plot_smooth_traj = False, N_i=5, N_f=1, steepness=20, figsize=(10,10), scatter_alpha = 0.5, plot_daily_start_points = False):
+                      plot_smooth_traj = False, N_i=5, N_f=1, steepness=20, figsize=(10,10), scatter_alpha = 0.5, plot_daily_start_points = False, heatmap=False):
     fig, axs = plt.subplots(figsize=figsize)
     cmap = color_contour_bckg # Match the colormap style from plot_landscape
     levels_ = 12 # 12 fix!
@@ -228,10 +230,10 @@ def plot_scatter_traj(obj, syll, day_i, day_f, every_nth_point,
     # Plot background landscape
     if obj.LANDSCAPE == 0:
         print("Plotting artificial landscape")
-        plot_artificial(obj, syll, axs, levels_, cmap, if_contour=True)
+        plot_artificial(obj, syll, axs, levels_, cmap, if_contour=True, contour_alpha=.2, heatmap=heatmap)
     else:
         print("Plotting syrinx landscape")
-        plot_syrinx(obj, syll, axs, levels_, cmap, if_contour=True, contour_alpha=.2)
+        plot_syrinx(obj, syll, axs, levels_, cmap, if_contour=True, contour_alpha=.2, heatmap=heatmap)
     
     # Plot agent trajectory
     x_traj, y_traj = zip(*obj.actions[:, :, syll, :].reshape(-1, 2))
@@ -364,8 +366,6 @@ def plot_lansdcape_only(obj, syll, contour_levels=10, contour_alpha=1, plot_colo
     else:
         print("Plotting syrinx landscape")
         plot_syrinx(obj, syll, axs, levels_, cmap, if_contour=True, contour_alpha=contour_alpha)
-        axs.set_ylabel(r'$Pressure (P)$', fontsize=30)
-        axs.set_xlabel(r'$Tension (T)$', fontsize=30)
     # if not force_landscape:
     #     if obj.LANDSCAPE == 0:
     #         print("No force artificial landscape")
