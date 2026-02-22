@@ -10,7 +10,6 @@ def running_mean(x, N=5):
         rm = np.convolve(x, np.ones(N)/N, mode='valid')
         padded_rm = np.ones(np.shape(x)) * x # rm[-1]
         padded_rm[N//2:N//2+rm.size] = rm
-        
 
         return padded_rm
 
