@@ -2,6 +2,7 @@ import numpy as np
 from scipy.interpolate import interp2d, RegularGridInterpolator
 import seaborn as sns
 from matplotlib.colors import LinearSegmentedColormap
+from scipy.ndimage import maximum_filter
 
 
 def running_mean(x, N=5):
@@ -158,11 +159,39 @@ def make_contour(Z, n=256):
     targetpos[1] = (targetZpos[0] / Z.shape[0]) * 2 - 1
     return Z, targetpos
 
+def find_peaks_2d(data, threshold=None):
+    """
+    Finds local maxima in a 2D array.
+    
+    Args:
+        data (np.ndarray): The 2D input array.
+        threshold (float): Minimum value to be considered a peak.
+        
+    Returns:
+        tuple: (rows, cols) indices of the detected peaks.
+    """
+    # 1. Apply a maximum filter. This replaces each element with 
+    # the maximum value in its 3x3 neighborhood.
+    local_max = maximum_filter(data, size=3, mode='constant')
+    
+    # 2. A point is a peak if it equals the local maximum
+    # and (optionally) is greater than the threshold.
+    peak_mask = (data == local_max)
+    
+    if threshold is not None:
+        peak_mask &= (data > threshold)
+        
+    # 3. Extract the coordinates
+    rows, cols = np.where(peak_mask)
+    heights = data[rows, cols]
+
+    return rows, cols, heights
+
 # Colors
 sns_cmap = sns.color_palette("colorblind")
 color_cortical = sns_cmap[0]
 color_bg = sns_cmap[1]
 color_motor = 'k'
-color_contour_bckg = 'Greys' #LinearSegmentedColormap.from_list('change_this', ['white', 'white'])
+color_contour_bckg = LinearSegmentedColormap.from_list('change_this', ['white', 'white']) # 'Greys' 
 color_reward = 'k'
 if_contour = True

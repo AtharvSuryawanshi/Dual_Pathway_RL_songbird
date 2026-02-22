@@ -1,3 +1,5 @@
+from gettext import find
+
 import numpy as np
 import os
 import json
@@ -7,6 +9,7 @@ import yaml
 from pathlib import Path
 from matplotlib.colors import LinearSegmentedColormap
 from dual_pathway_model.functions import *
+from scipy.signal import find_peaks
 
 
 # Parameters 
@@ -481,7 +484,8 @@ def plot_trajectory(obj, syll):
 def build_and_run(seed, parameters, NN, lesion = False, 
                   output_reward= False, 
                   output_action= False,
-                  plot = False):
+                  plot = False,
+                  find_nos_peaks = False):
     N_SYLL = parameters['params']['N_SYLL']
     DAYS = parameters['params']['DAYS']
     TRIALS = parameters['params']['TRIALS']
@@ -493,6 +497,14 @@ def build_and_run(seed, parameters, NN, lesion = False,
         remove_prev_files()
     env = Environment(seed, parameters, NN)
     env.run(parameters, ANNEALING)
+    if find_nos_peaks:
+        peaks = []
+        for syll in range(N_SYLL):
+            x, y = np.linspace(-env.limit, env.limit, 50), np.linspace(-env.limit, env.limit, 50)
+            X, Y = np.meshgrid(x, y)
+            Z = env.get_reward([X, Y], syll)
+            rows, cols, heights = find_peaks_2d(Z, threshold=0.0)
+            peaks.append(len(rows)) # only care about number of peaks, not their locations
     output = {}
     if output_reward:
         rewards_output = env.rewards[:,:,:] #.reshape(env.DAYS*env.TRIALS, env.N_SYLL)
@@ -516,6 +528,9 @@ def build_and_run(seed, parameters, NN, lesion = False,
         return np.mean(rewards[-100:], axis=0), np.mean(rewards[int((BG_INTACT_DAYS-1)*TRIALS-100):int((BG_INTACT_DAYS-1)*TRIALS)], axis=0), np.mean(rewards[int((BG_INTACT_DAYS+1)*TRIALS-100):int((BG_INTACT_DAYS+1)*TRIALS)], axis=0)
     else:
         if N_SYLL == 1:
-            return outputs[0]
+            if find_nos_peaks:
+                return outputs[0], peaks[0]
+            else:
+                return outputs[0]
         return outputs
 
