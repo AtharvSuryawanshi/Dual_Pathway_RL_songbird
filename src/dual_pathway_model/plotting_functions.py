@@ -185,29 +185,41 @@ import yaml
 
 # LANDSCAPE PLOT
 
-def plot_artificial(obj, syll, axs, levels_, cmap, if_contour, contour_alpha=1, heatmap=False):
+def plot_artificial(obj, syll, axs, levels_, cmap, if_contour, contour_alpha=1, heatmap=False, colorbar=False):
+    
+    if not heatmap and colorbar:
+        print("Warning: Colorbar is only plotted when heatmap is True. Setting colorbar to False.")
+        colorbar = False
+    
     limit = obj.limit
     x, y = np.linspace(-limit, limit, 50), np.linspace(-limit, limit, 50)
     X, Y = np.meshgrid(x, y)
     Z = obj.get_reward([X, Y], syll)
     # Z should be normalised for the simulations - max 1 min 0
     if if_contour:
-        axs.contour(X, Y, Z, levels=levels_, colors='k', linewidths=1, alpha=contour_alpha)
+        axs.contour(X, Y, Z, levels=levels_, extent=[-limit, limit, -limit, limit], aspect='equal', colors='k', linewidths=1, alpha=contour_alpha)
     if heatmap:
-        cs = axs.contourf(Z, cmap=cmap, extent=[-limit, limit, -limit, limit], vmin=0, vmax=1, levels=levels_, alpha=contour_alpha)
-        cbar = plt.colorbar(cs, ax=axs, pad=.05)
-        cbar.set_label('Performance Metric (R)', fontsize=30, rotation=270, labelpad=20)
-        cbar.ax.tick_params(labelsize=20)
-        cbar.ax.set_yticks([0, 1])
-    axs.set_xticks([-limit, 0, limit], [-1, 0, 1])
-    axs.set_yticks([-limit, 0, limit], [-1, 0, 1])
+        cs = axs.contourf(Z, cmap=cmap, extent=[-limit, limit, -limit, limit], aspect='equal', vmin=0, vmax=1, levels=levels_, alpha=contour_alpha)
+        if colorbar:
+            # Create colorbar on the inset axis (cax)
+            cax = axs.inset_axes((1.05, 0, 0.08, 1.0))
+            cbar = axs.figure.colorbar(cs, cax=cax)
+            cbar.set_label('Performance Metric (R)', fontsize=30, rotation=270, labelpad=20)
+            cbar.ax.tick_params(labelsize=20)
+            cbar.ax.set_yticks([0, 1])
+    axs.set_aspect('equal', adjustable='box')
+    axs.set_xticks([-limit, limit], [-1, 1])
+    axs.set_yticks([limit], [1])
     axs.set_ylabel(r'$X$', fontsize=30)
     axs.set_xlabel(r'$Y$', fontsize=30)
-    axs.tick_params(labelsize=20)
+    axs.tick_params(labelsize=20, length=0)
 
-def plot_syrinx(obj, syll, axs, levels_, cmap, if_contour, contour_alpha=1, heatmap=False):
+def plot_syrinx(obj, syll, axs, levels_, cmap, if_contour, contour_alpha=1, heatmap=False, colorbar=True):
     if obj.N_SYLL > 4:
         raise ValueError('Only 4 syllables are available in the syrinx landscape')
+    if not heatmap and colorbar:
+        print("Warning: Colorbar is only plotted when heatmap is True. Setting colorbar to False.")
+        colorbar = False
     obj.syrinx_contours = []
     obj.syrinx_targets = []
     for j in range(obj.N_SYLL):
@@ -220,18 +232,22 @@ def plot_syrinx(obj, syll, axs, levels_, cmap, if_contour, contour_alpha=1, heat
     Z = obj.syrinx_contours[syll]
     target_pos = obj.syrinx_targets[syll]
     if if_contour:
-        axs.contour(Z.T, levels=levels_, extent=[-1, 1, -1, 1], colors='k', linewidths=1, alpha=contour_alpha)
+        axs.contour(Z.T, levels=levels_, extent=[-1, 1, -1, 1], aspect='equal', colors='k', linewidths=1, alpha=contour_alpha)
     if heatmap:
-        cs = axs.contourf(Z.T, cmap=cmap, extent=[-1, 1, -1, 1], vmin=0, vmax=1, levels=levels_, alpha=contour_alpha)
-        cbar = plt.colorbar(cs, ax=axs, pad=.05)
-        cbar.set_label('Performance Metric (R)', fontsize=30, rotation=270, labelpad=20)
-        cbar.ax.tick_params(labelsize=20)
-        cbar.ax.set_yticks([0, 1])
+        cs = axs.contourf(Z.T, cmap=cmap, extent=[-1, 1, -1, 1], aspect='equal', vmin=0, vmax=1, levels=levels_, alpha=contour_alpha)
+        if colorbar:
+            # Create colorbar on the inset axis (cax)
+            cax = axs.inset_axes((1.05, 0, 0.08, 1.0))
+            cbar = axs.figure.colorbar(cs, cax=cax)
+            cbar.set_label('Performance Metric (R)', fontsize=30, rotation=270, labelpad=20)
+            cbar.ax.tick_params(labelsize=20)
+            cbar.ax.set_yticks([0, 1])
+    axs.set_aspect('equal', adjustable='box')
     axs.set_xticks([-1, 1], [0, 1])
-    axs.set_yticks([-1, 1], [0, 0.2])
+    axs.set_yticks([1], [0.2])
     axs.set_ylabel(r'$Pressure (P)$', fontsize=30)
     axs.set_xlabel(r'$Tension (T)$', fontsize=30)
-    axs.tick_params(labelsize=20)
+    axs.tick_params(labelsize=20, length=0)
     # axs.scatter(target_pos[1], target_pos[0], s=100, c='green', marker='x', label='Target')
 
 
@@ -333,8 +349,8 @@ def plot_scatter_traj(obj, syll, day_i, day_f, every_nth_point,
 
 
 
-def plot_landscape_only(obj, syll, contour_levels=12, contour_alpha=1, plot_colors = plot_colors, if_contour=False, heatmap=False):
-    fig, axs = plt.subplots(figsize=(9, 9))
+def plot_landscape_only(obj, syll, contour_levels=12, contour_alpha=1, plot_colors = plot_colors, if_contour=False, heatmap=False, colorbar=False):
+    fig, axs = plt.subplots(figsize=(12, 10))
     cmap = 'Greys' # LinearSegmentedColormap.from_list('change_this', ['white', 'white']) # 'Greys' color_contour_bckg #'Purples' #LinearSegmentedColormap.from_list('white_to_black', ['white', 'rebeccapurple'])
     levels_ = contour_levels
     ##### Artificial Landscapes #####
@@ -380,10 +396,10 @@ def plot_landscape_only(obj, syll, contour_levels=12, contour_alpha=1, plot_colo
         # axs.scatter(target_pos[1], target_pos[0], s=100, c='green', marker='x', label='Target')
     if obj.LANDSCAPE == 0:
         print("Plotting artificial landscape")
-        plot_artificial(obj, syll, axs, levels_, cmap, contour_alpha=contour_alpha, if_contour=if_contour, heatmap=heatmap)
+        plot_artificial(obj, syll, axs, levels_, cmap, contour_alpha=contour_alpha, if_contour=if_contour, heatmap=heatmap, colorbar=colorbar)
     else:
         print("Plotting syrinx landscape")
-        plot_syrinx(obj, syll, axs, levels_, cmap, contour_alpha=contour_alpha, if_contour=if_contour, heatmap=heatmap)
+        plot_syrinx(obj, syll, axs, levels_, cmap, contour_alpha=contour_alpha, if_contour=if_contour, heatmap=heatmap, colorbar=colorbar)
     
     # if not force_landscape:
     #     if obj.LANDSCAPE == 0:
