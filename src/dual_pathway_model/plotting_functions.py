@@ -7,6 +7,7 @@ import yaml
 from matplotlib.colors import LinearSegmentedColormap
 from dual_pathway_model.functions import *
 from matplotlib.collections import LineCollection
+import os
 
 print('Testing')
 
@@ -517,7 +518,7 @@ def plot_output(obj, syll, skip_size=1, window_size=10):
     ax2.set_xlim(-N_DAILY_MOTIFS, N_DAILY_MOTIFS*DAYS)
     # ax2.spines['bottom'].set_bounds(0, obj.n_days+obj.n_lesioned_days)
     
-    ax2.set_ylabel(r'$P$', fontsize=20)
+    ax2.set_ylabel(r'$P$', fontsize=20, labelpad=-10)
     ax1.set_ylabel(r'$T$', fontsize=20)
     plt.legend(frameon=False, loc='center right', fontsize=12, bbox_to_anchor=(1.03,1))
     plt.xticks(range(0, N_DAILY_MOTIFS*(DAYS+1), 20*N_DAILY_MOTIFS), np.arange(40, DAYS+1+40, 20))
@@ -526,3 +527,8 @@ def plot_output(obj, syll, skip_size=1, window_size=10):
     plt.tight_layout()
     # plt.savefig(figures_path+'motor_output'+'.png')
     # plt.show()
+
+
+def save_figure(filename, format="png", dpi=600, metadata=None):
+    os.makedirs("Plots", exist_ok=True)
+    plt.savefig(os.path.join("Plots", f"{filename}.{format}"), dpi=dpi, bbox_inches="tight", metadata=metadata)
