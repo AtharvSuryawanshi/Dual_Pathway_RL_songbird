@@ -330,6 +330,22 @@ class Environment:
                         self.pot_array[day, syll] = potentiation_factor[syll, 0]
                         self.potentiation_factor_all[day, syll, :, :] = potentiation_factor
                         self.model.W_hvc_bg[syll, :] = W1*indices_in_bound + W2*(~indices_in_bound)
+                        self.model.W_hvc_bg[syll, :] = np.clip(self.model.W_hvc_bg[syll, :], -1, 1)
+                        if syll == 0 and day == 5:
+                            fig = plt.figure()
+                            plt.plot(abs_diff[0], alpha = .5)
+                            plt.plot(potentiation_factor[syll, :], alpha = .5)
+                            plt.plot(dw_night, alpha = .5)
+                            plt.legend(['abs diff', 'potentiation factor', 'dw night'])
+                            plt.ylim(-1,1)
+                            plt.show()
+                            fig = plt.figure()
+                            plt.scatter(abs_diff, potentiation_factor)
+                            plt.xlim(0,1)
+                            plt.ylim(0,1)
+                            plt.show()
+
+
 
 
     def save_trajectory(self, syll):

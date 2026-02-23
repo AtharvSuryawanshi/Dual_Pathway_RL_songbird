@@ -1,5 +1,5 @@
 violin_plot_colors:
-  color_violin : 'lightgrey'
+  color_violin : 'grey'
   color_bar : 'grey'
   color_strip : 'black'
 

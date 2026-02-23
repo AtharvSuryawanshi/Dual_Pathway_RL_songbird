@@ -3,15 +3,23 @@ from scipy.interpolate import interp2d, RegularGridInterpolator
 import seaborn as sns
 from matplotlib.colors import LinearSegmentedColormap
 from scipy.ndimage import maximum_filter
-
+import pandas as pd
 
 def running_mean(x, N=5):
         """ Returns the running average of an array. """
-        rm = np.convolve(x, np.ones(N)/N, mode='valid')
-        padded_rm = np.ones(np.shape(x)) * x # rm[-1]
-        padded_rm[N//2:N//2+rm.size] = rm
+        # rm = np.convolve(x, np.ones(N)/N, mode='valid')
+        # padded_rm = np.ones(np.shape(x)) * x # rm[-1]
+        # padded_rm[N//2:N//2+rm.size] = rm
 
-        return padded_rm
+        x_series = pd.Series(x)
+        y1 = x_series.expanding().mean()[::2]
+        if len(x_series) % 2 != 0:  y1 = y1[:-1]
+        y2 = x_series[::-1].expanding().mean()[::2][::-1]
+        y3 = pd.concat([y1, y2], ignore_index=True)
+        rolling_mean = x_series.rolling(window=N, center=True).mean()
+        rolling_mean = rolling_mean.fillna(y3).to_numpy()
+
+        return rolling_mean
 
 def running_mean_dynamic(x, N_i=3, N_f=50, steepness=5.0):
     """

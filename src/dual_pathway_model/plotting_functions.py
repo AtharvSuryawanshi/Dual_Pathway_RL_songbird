@@ -26,6 +26,7 @@ color_motor = pathway_colors['motor']
 def plot_results_violin(returns, params, 
                         plot_colors = plot_colors, 
                         big_xlabel=None, xticklabels=None,
+                        xticklabel_rotation=0,
                         print_success_rate=True
                         ):
     returns = np.asarray(returns)
@@ -40,6 +41,7 @@ def plot_results_violin(returns, params,
         data.extend(col)
         labels_list.extend([sorted_params[i]] * len(col))
 
+
     # --- Figure & layout ---
     fig = plt.figure(
         figsize=(1.5 * n_values + 2, 7),
@@ -47,25 +49,28 @@ def plot_results_violin(returns, params,
     )
     gs = fig.add_gridspec(
         2, 2,
-        width_ratios=[6, 1.2],
-        height_ratios=[2, 5],
-        wspace=0.25,
-        hspace=0.15
+        width_ratios=[6, 2],
+        height_ratios=[2.5, 5],
+        wspace=0.15,
+        hspace=0
     )
     # =======================
     # Violin + strip plot
     # =======================
     ax1 = fig.add_subplot(gs[:, 0])
 
+    ax1.axhspan(.7, 1, alpha=.25, color='grey')
+
+
     sns.violinplot(
         x=labels_list,
         y=data,
         inner=None,
-        color=plot_colors['violin_plot_colors']['color_violin'],
+        color= 'grey', #plot_colors['violin_plot_colors']['color_violin'],
         linewidth=0,
         cut=0,
-        bw_adjust=0.5,
-        width=0.5,
+        bw_adjust=.5,
+        width=1,
         ax=ax1
     )
 
@@ -77,20 +82,21 @@ def plot_results_violin(returns, params,
                 x_center = np.median(verts[:, 0])
                 verts[:, 0] = np.maximum(verts[:, 0], x_center)
 
+
     strip = sns.stripplot(
         x=labels_list,
         y=data,
         size=3,
         color=plot_colors['violin_plot_colors']['color_strip'],
         alpha=0.9,
-        jitter=0.05,
+        jitter=0.1,
         ax=ax1
     )
 
     # Shift strip slightly left
     for coll in strip.collections:
         offsets = coll.get_offsets()
-        offsets[:, 0] -= 0.1
+        offsets[:, 0] -= 0.2
         coll.set_offsets(offsets)
 
     ax1.axhline(
@@ -101,16 +107,18 @@ def plot_results_violin(returns, params,
         label='Global maxima threshold'
     )
 
+
+
     ax1.set_ylim(0, 1)
     ax1.set_yticks([0, 0.7, 1])
     ax1.set_yticklabels(['0', '0.7', '1'], fontsize=12)
     ax1.set_ylabel('Terminal Performance', fontsize=16)
 
     if big_xlabel is not None:
-        ax1.set_xlabel(big_xlabel, fontsize=16)
+        ax1.set_xlabel(big_xlabel, fontsize=16, labelpad=10)
 
     # 🔒 FIX: ticks BEFORE labels
-    ax1.set_xticks(range(n_values))
+    ax1.set_xticks(np.arange(n_values)-.05)
     ax1.set_xticklabels(
         xticklabels if xticklabels is not None else sorted_params,
         fontsize=12
@@ -127,26 +135,28 @@ def plot_results_violin(returns, params,
     ax2.bar(
         range(n_values),
         above_threshold2 * 100,
-        color= plot_colors['violin_plot_colors']['color_bar'],
+        alpha=.75,
+        color='grey'# plot_colors['violin_plot_colors']['color_bar'],
     )
     # plot above_threshold2 values on top of bars
     if print_success_rate:
         for i, val in enumerate(above_threshold2 * 100):
             ax2.text(
-                i, val + 2, f"{val:.1f}",
+                i, val + 5, f"{val:.1f}",
                 ha='center', va='bottom', fontsize=10, rotation=90
-
             )
 
     ax2.set_ylim(0, 100)
     ax2.set_ylabel('Success Rate (%)', fontsize=12)
 
     ax2.set_xticks(range(n_values))
+
+    ha = 'right' if xticklabel_rotation != 0 else 'center'
     ax2.set_xticklabels(
         xticklabels if xticklabels is not None else sorted_params,
-        rotation=90,
-        ha='right',
-        va='center',
+        rotation=xticklabel_rotation,
+        ha=ha,
+        va='top',
         fontsize=10,
         rotation_mode="anchor"
     )
@@ -265,10 +275,10 @@ def plot_scatter_traj(obj, syll, day_i, day_f, every_nth_point,
     # )
 
     
-
+    scatter_color = 'grey' if plot_smooth_traj else color_motor
     axs.scatter(
         x_traj[day_i * TRIALS: day_f * TRIALS][::every_nth_point],
-        y_traj[day_i * TRIALS: day_f * TRIALS][::every_nth_point], 25, color = color_motor, label='Agent Trajectory', edgecolors='none', alpha=scatter_alpha, marker='.', zorder=5
+        y_traj[day_i * TRIALS: day_f * TRIALS][::every_nth_point], 25, color = scatter_color, label='Agent Trajectory', edgecolors='none', alpha=scatter_alpha, marker='.', zorder=5
     )
     
     if plot_smooth_traj:
@@ -281,7 +291,7 @@ def plot_scatter_traj(obj, syll, day_i, day_f, every_nth_point,
 
         V = [np.stack([x, y]) for x, y in zip(X, Y)]
         V = np.array(V).reshape((1, len(X), 2))
-        lines = LineCollection(V, color=color_motor, alpha=.4, linewidth=1, zorder=100)
+        lines = LineCollection(V, color=color_motor, alpha=.8, linewidth=1, zorder=100)
         axs.add_collection(lines)
 
     if plot_daily_start_points:
@@ -396,7 +406,7 @@ def plot_landscape_only(obj, syll, contour_levels=12, contour_alpha=1, plot_colo
 
 
 ###### PLOT MOTOR OUTPUTS ######
-def plot_output(obj, syll, skip_size=20):
+def plot_output(obj, syll, skip_size=1, window_size=10):
     figure, (ax1, ax2) = plt.subplots(2,1)
     N_SYLL = obj.N_SYLL # To plot only one syllable at a time, set N_SYLL to 1 and plot the first syllable (syll=0)
     N_DAILY_MOTIFS = obj.TRIALS
@@ -417,9 +427,16 @@ def plot_output(obj, syll, skip_size=20):
     y_ra_traj = np.array(y_ra_traj)
 
 
-    ax1.scatter(x, obj.actions[:,:,syll,0].reshape(DAYS*N_DAILY_MOTIFS)[::skip_size], s=1, color=color_motor, alpha=.8, marker='.')
-    ax2.scatter(x, obj.actions[:,:,syll,1].reshape(DAYS*N_DAILY_MOTIFS)[::skip_size], s=1, color=color_motor, alpha=.8, marker='.')
+    ax1.plot(obj.centers[syll, 1]*np.ones(N_DAILY_MOTIFS*DAYS),  color='black', linestyle='--', linewidth=2)
+    ax2.plot(obj.centers[syll, 0]*np.ones(N_DAILY_MOTIFS*DAYS),  color='black', linestyle='--', linewidth=2)
 
+
+    ax1.scatter(x, obj.actions[:,:,syll,0].reshape(DAYS*N_DAILY_MOTIFS)[::skip_size], s=1, color='grey', alpha=.2, marker='.')
+    ax2.scatter(x, obj.actions[:,:,syll,1].reshape(DAYS*N_DAILY_MOTIFS)[::skip_size], s=1, color='grey', alpha=.2, marker='.')
+
+
+    ax1.plot(running_mean(obj.actions[:,:,syll,0].reshape(DAYS*N_DAILY_MOTIFS), window_size), color=color_motor, lw=1)
+    ax2.plot(running_mean(obj.actions[:,:,syll,1].reshape(DAYS*N_DAILY_MOTIFS), window_size), color=color_motor, lw=1)
 
     # Plot running average of cortical output (brown), BG output (grey) and total output (black)
     # Data
@@ -442,8 +459,11 @@ def plot_output(obj, syll, skip_size=20):
     #     ax1.plot(obj.centers[syll + 1, 0]*np.ones(N_DAILY_MOTIFS*DAYS),  color='red', linestyle='--', linewidth=1)
     #     ax2.plot(obj.centers[syll + 1, 1]*np.ones(N_DAILY_MOTIFS*DAYS),  color='red', linestyle='--', linewidth=1, label = 'Target')
     # elif N_SYLL == 1:
-    ax1.plot(obj.centers[syll, 1]*np.ones(N_DAILY_MOTIFS*DAYS),  color='grey', linestyle='--', linewidth=1.5, label = 'Target')
-    ax2.plot(obj.centers[syll, 0]*np.ones(N_DAILY_MOTIFS*DAYS),  color='grey', linestyle='--', linewidth=1.5)
+    
+
+    ax1.plot(obj.centers[syll, 1]*np.ones(N_DAILY_MOTIFS*DAYS),  color='white', linestyle='--', linewidth=1, label = 'Global optimum')
+    ax2.plot(obj.centers[syll, 0]*np.ones(N_DAILY_MOTIFS*DAYS),  color='white', linestyle='--', linewidth=1)
+
 
     # Axis beauty
     # ax1.axvline(x=N_DAYS_INTACT * N_DAILY_MOTIFS, linestyle='--', color='grey', lw=1)
@@ -456,11 +476,11 @@ def plot_output(obj, syll, skip_size=20):
     ax1.get_xaxis().set_ticks([])
     ax1.set_ylim(-LIMIT, LIMIT)
     ax1.tick_params(labelsize=15)
-    ax1.set_yticks([-LIMIT, 0, LIMIT], [-1, 0, 1] )
+    ax1.set_yticks([-LIMIT, LIMIT], [0, 1] )
     ax1.set_xlim(-N_DAILY_MOTIFS, N_DAILY_MOTIFS*(DAYS))
     
     ax2.set_xlabel('DPH', fontsize=20)
-    ax2.set_yticks([-LIMIT, 0, LIMIT], [-1, 0, 1]   )
+    ax2.set_yticks([-LIMIT, LIMIT], [0, 0.2] )
     ax2.set_ylim(-LIMIT, LIMIT)
     ax2.tick_params(labelsize=15)
     ax2.spines['top'].set_visible(False)
@@ -473,6 +493,7 @@ def plot_output(obj, syll, skip_size=20):
     plt.legend(frameon=False, loc='center right', fontsize=12, bbox_to_anchor=(1.03,1))
     plt.xticks(range(0, N_DAILY_MOTIFS*(DAYS+1), 20*N_DAILY_MOTIFS), np.arange(40, DAYS+1+40, 20))
     ax1.legend()
+    ax1.legend().get_frame().set_facecolor('lightgray')
     plt.tight_layout()
     # plt.savefig(figures_path+'motor_output'+'.png')
     plt.show()
