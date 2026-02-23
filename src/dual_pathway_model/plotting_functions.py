@@ -171,7 +171,7 @@ def plot_results_violin(returns, params,
 
     ax2.spines['top'].set_visible(False)
     ax2.spines['left'].set_visible(False)
-    plt.show()
+    # plt.show()
 
 
 from matplotlib.colors import LinearSegmentedColormap
@@ -358,7 +358,7 @@ def plot_scatter_traj(obj, syll, day_i, day_f, every_nth_point,
     plt.tight_layout()
 
     # plt.savefig(figures_path+'contour_syll'+str(syll+1)+'.png')
-    plt.show()
+    # plt.show()
 
 
 
@@ -525,4 +525,4 @@ def plot_output(obj, syll, skip_size=1, window_size=10):
     ax1.legend().get_frame().set_facecolor('lightgray')
     plt.tight_layout()
     # plt.savefig(figures_path+'motor_output'+'.png')
-    plt.show()
+    # plt.show()
