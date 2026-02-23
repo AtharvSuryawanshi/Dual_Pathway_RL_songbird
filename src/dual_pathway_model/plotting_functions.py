@@ -27,7 +27,8 @@ def plot_results_violin(returns, params,
                         plot_colors = plot_colors, 
                         big_xlabel=None, xticklabels=None,
                         xticklabel_rotation=0,
-                        print_success_rate=True
+                        print_success_rate=True,
+                        height_ratio=[2.4, 5]
                         ):
     returns = np.asarray(returns)
     sorted_params = list(params)
@@ -50,7 +51,7 @@ def plot_results_violin(returns, params,
     gs = fig.add_gridspec(
         2, 2,
         width_ratios=[6, 2],
-        height_ratios=[2.5, 5],
+        height_ratios=height_ratio,
         wspace=0.15,
         hspace=0
     )
@@ -59,7 +60,7 @@ def plot_results_violin(returns, params,
     # =======================
     ax1 = fig.add_subplot(gs[:, 0])
 
-    ax1.axhspan(.7, 1, alpha=.25, color='grey')
+    ax1.axhspan(.7, 1.2, alpha=.25, color='grey')
 
 
     sns.violinplot(
@@ -100,16 +101,16 @@ def plot_results_violin(returns, params,
         coll.set_offsets(offsets)
 
     ax1.axhline(
-        0.7, 0.05, 0.95,
-        color='grey',
+        0.7, 0.02, .98,
+        color='dimgray',
         linestyle='--',
-        linewidth=1,
-        label='Global maxima threshold'
+        linewidth=2,
+        label='Success threshold'
     )
 
 
-
-    ax1.set_ylim(0, 1)
+    ax1.set_ylim(0, 1.015)
+    ax1.spines['left'].set_bounds(0, 1)
     ax1.set_yticks([0, 0.7, 1])
     ax1.set_yticklabels(['0', '0.7', '1'], fontsize=12)
     ax1.set_ylabel('Terminal Performance', fontsize=16)
@@ -118,15 +119,17 @@ def plot_results_violin(returns, params,
         ax1.set_xlabel(big_xlabel, fontsize=16, labelpad=10)
 
     # 🔒 FIX: ticks BEFORE labels
+    ax1.set_xlim(-.45, n_values-.4)
     ax1.set_xticks(np.arange(n_values)-.05)
     ax1.set_xticklabels(
         xticklabels if xticklabels is not None else sorted_params,
         fontsize=12
     )
+    ax1.tick_params(axis='x', which='major', length=0)
 
     ax1.spines['top'].set_visible(False)
     ax1.spines['right'].set_visible(False)
-    ax1.legend(loc='lower right', fontsize=11, frameon=False)
+    ax1.legend(loc='lower right', fontsize=11, facecolor='lightgrey')
 
     # =======================
     # Success-rate bar plot
@@ -142,14 +145,19 @@ def plot_results_violin(returns, params,
     if print_success_rate:
         for i, val in enumerate(above_threshold2 * 100):
             ax2.text(
-                i, val + 5, f"{val:.1f}",
-                ha='center', va='bottom', fontsize=10, rotation=90
+                i, val + 5, int(val), # f"{val:.1f}",
+                ha='center', va='bottom', fontsize=10, rotation=0
             )
 
     ax2.set_ylim(0, 100)
-    ax2.set_ylabel('Success Rate (%)', fontsize=12)
+    ax2.set_ylabel('Success Rate (%)', fontsize=12, rotation=270)
+    ax2.set_yticks([0, 100])
+    ax2.yaxis.tick_right()
+    ax2.yaxis.set_label_position('right')
+
 
     ax2.set_xticks(range(n_values))
+    ax2.tick_params(axis='x', which='major', length=0)
 
     ha = 'right' if xticklabel_rotation != 0 else 'center'
     ax2.set_xticklabels(
@@ -162,7 +170,7 @@ def plot_results_violin(returns, params,
     )
 
     ax2.spines['top'].set_visible(False)
-    ax2.spines['right'].set_visible(False)
+    ax2.spines['left'].set_visible(False)
     plt.show()
 
 
@@ -252,7 +260,7 @@ def plot_syrinx(obj, syll, axs, levels_, cmap, if_contour, contour_alpha=1, heat
 
 
 def plot_scatter_traj(obj, syll, day_i, day_f, every_nth_point,
-                      plot_smooth_traj = False, figsize=(10,10), scatter_alpha = 0.5, plot_daily_start_points = False, if_contour=False, contour_alpha=1, heatmap=False):
+                      plot_smooth_traj = False, figsize=(10,10), scatter_alpha = 0.5, plot_daily_start_points = False, if_contour=False, contour_alpha=1, heatmap=False, colorbar=False, legend=False):
     fig, axs = plt.subplots(figsize=figsize)
     cmap = 'Greys'# color_contour_bckg # cmap param doesn't work # Match the colormap style from plot_landscape
     levels_ = 12 # 12 fix!
@@ -261,10 +269,10 @@ def plot_scatter_traj(obj, syll, day_i, day_f, every_nth_point,
     # Plot background landscape
     if obj.LANDSCAPE == 0:
         print("Plotting artificial landscape")
-        plot_artificial(obj, syll, axs, levels_, cmap, if_contour=if_contour, contour_alpha=contour_alpha, heatmap=heatmap)
+        plot_artificial(obj, syll, axs, levels_, cmap, if_contour=if_contour, contour_alpha=contour_alpha, heatmap=heatmap, colorbar=colorbar)
     else:
         print("Plotting syrinx landscape")
-        plot_syrinx(obj, syll, axs, levels_, cmap, if_contour=if_contour, contour_alpha=contour_alpha, heatmap=heatmap)
+        plot_syrinx(obj, syll, axs, levels_, cmap, if_contour=if_contour, contour_alpha=contour_alpha, heatmap=heatmap, colorbar=colorbar)
     
     # Plot agent trajectory
     x_traj, y_traj = zip(*obj.actions[:, :, syll, :].reshape(-1, 2))
@@ -294,7 +302,7 @@ def plot_scatter_traj(obj, syll, day_i, day_f, every_nth_point,
     scatter_color = 'grey' if plot_smooth_traj else color_motor
     axs.scatter(
         x_traj[day_i * TRIALS: day_f * TRIALS][::every_nth_point],
-        y_traj[day_i * TRIALS: day_f * TRIALS][::every_nth_point], 25, color = scatter_color, label='Agent Trajectory', edgecolors='none', alpha=scatter_alpha, marker='.', zorder=5
+        y_traj[day_i * TRIALS: day_f * TRIALS][::every_nth_point], 25, color = scatter_color, label='Motor output', edgecolors='none', alpha=scatter_alpha, marker='.', zorder=5
     )
     
     if plot_smooth_traj:
@@ -324,16 +332,16 @@ def plot_scatter_traj(obj, syll, day_i, day_f, every_nth_point,
     
     axs.scatter(x_traj[0], y_traj[0],
                 s=150, c='black',
-                marker='s', zorder=500, label='Starting Point')
+                marker='s', zorder=500)#, label='Starting Point')
     axs.scatter(x_traj[-1], y_traj[-1],
                 s=150, c='white',
-                marker='X', zorder=500, label='Ending Point')
+                marker='X', zorder=500)#, label='Ending Point')
     axs.scatter(x_traj[0], y_traj[0],
                 s=50, c='white',
-                marker='s', zorder=600, label='Starting Point')
+                marker='s', zorder=600, label='Initial output')
     axs.scatter(x_traj[-1], y_traj[-1],
                 s=50, c='black',
-                marker='x', zorder=600, label='Ending Point')
+                marker='x', zorder=600, label='Final output')
     
     # Labels
     # axs.set_ylabel(r'$P$', fontsize=30)
@@ -341,7 +349,12 @@ def plot_scatter_traj(obj, syll, day_i, day_f, every_nth_point,
     # axs.set_ylabel(r'$P_{\alpha}$ (Pressure)', fontsize=22)
     # axs.set_xlabel(r'$P_{\beta}$ (Tension)', fontsize=22)
     # axs.tick_params(labelsize=20)
-    # axs.legend()
+
+    if legend:
+        axs.legend(facecolor='lightgrey', bbox_to_anchor=(.8, 1.15), loc='upper left')#, edgecolor='black', framealpha=0.8)
+
+
+
     plt.tight_layout()
 
     # plt.savefig(figures_path+'contour_syll'+str(syll+1)+'.png')
@@ -443,8 +456,8 @@ def plot_output(obj, syll, skip_size=1, window_size=10):
     y_ra_traj = np.array(y_ra_traj)
 
 
-    ax1.plot(obj.centers[syll, 1]*np.ones(N_DAILY_MOTIFS*DAYS),  color='black', linestyle='--', linewidth=2)
-    ax2.plot(obj.centers[syll, 0]*np.ones(N_DAILY_MOTIFS*DAYS),  color='black', linestyle='--', linewidth=2)
+    # ax1.plot(obj.centers[syll, 1]*np.ones(N_DAILY_MOTIFS*DAYS),  color='black', linestyle='-', linewidth=1)
+    # ax2.plot(obj.centers[syll, 0]*np.ones(N_DAILY_MOTIFS*DAYS),  color='black', linestyle='-', linewidth=1)
 
 
     ax1.scatter(x, obj.actions[:,:,syll,0].reshape(DAYS*N_DAILY_MOTIFS)[::skip_size], s=1, color='grey', alpha=.2, marker='.')
@@ -477,8 +490,8 @@ def plot_output(obj, syll, skip_size=1, window_size=10):
     # elif N_SYLL == 1:
     
 
-    ax1.plot(obj.centers[syll, 1]*np.ones(N_DAILY_MOTIFS*DAYS),  color='white', linestyle='--', linewidth=1, label = 'Global optimum')
-    ax2.plot(obj.centers[syll, 0]*np.ones(N_DAILY_MOTIFS*DAYS),  color='white', linestyle='--', linewidth=1)
+    ax1.plot(obj.centers[syll, 1]*np.ones(N_DAILY_MOTIFS*DAYS),  color='grey', linestyle='--', linewidth=2, label = 'Global optimum')
+    ax2.plot(obj.centers[syll, 0]*np.ones(N_DAILY_MOTIFS*DAYS),  color='grey', linestyle='--', linewidth=2)
 
 
     # Axis beauty
