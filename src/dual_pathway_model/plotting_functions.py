@@ -20,7 +20,7 @@ with open(config_path, "r") as f:
     print("Plotting colors safely loaded")
 
 pathway_colors = plot_colors['colors_pathway']
-sns_cmap = pathway_colors['palette']
+# sns_cmap = pathway_colors['palette']
 color_motor = pathway_colors['motor']
 
 
@@ -219,6 +219,8 @@ def plot_artificial(obj, syll, axs, levels_, cmap, if_contour, contour_alpha=1, 
     axs.set_aspect('equal', adjustable='box')
     axs.set_xticks([-limit, limit], [-1, 1])
     axs.set_yticks([limit], [1])
+    axs.set_xlim([-limit, limit])
+    axs.set_ylim([-limit, limit])
     axs.set_ylabel(r'$X$', fontsize=30)
     axs.set_xlabel(r'$Y$', fontsize=30)
     axs.tick_params(labelsize=20, length=0)
@@ -241,9 +243,9 @@ def plot_syrinx(obj, syll, axs, levels_, cmap, if_contour, contour_alpha=1, heat
     Z = obj.syrinx_contours[syll]
     target_pos = obj.syrinx_targets[syll]
     if if_contour:
-        axs.contour(Z.T, levels=levels_, extent=[-1, 1, -1, 1], aspect='equal', colors='k', linewidths=1, alpha=contour_alpha)
+        axs.contour(Z.T, levels=levels_, extent=[-1, 1, -1, 1], colors='k', linewidths=1, alpha=contour_alpha)
     if heatmap:
-        cs = axs.contourf(Z.T, cmap=cmap, extent=[-1, 1, -1, 1], aspect='equal', vmin=0, vmax=1, levels=levels_, alpha=contour_alpha)
+        cs = axs.contourf(Z.T, cmap=cmap, extent=[-1, 1, -1, 1], vmin=0, vmax=1, levels=levels_, alpha=contour_alpha)
         if colorbar:
             # Create colorbar on the inset axis (cax)
             cax = axs.inset_axes((1.05, 0, 0.08, 1.0))
@@ -254,18 +256,82 @@ def plot_syrinx(obj, syll, axs, levels_, cmap, if_contour, contour_alpha=1, heat
     axs.set_aspect('equal', adjustable='box')
     axs.set_xticks([-1, 1], [0, 1])
     axs.set_yticks([1], [0.2])
+    axs.set_xlim([-limit, limit])
+    axs.set_ylim([-limit, limit])
     axs.set_ylabel(r'$Pressure (P)$', fontsize=30)
     axs.set_xlabel(r'$Tension (T)$', fontsize=30)
     axs.tick_params(labelsize=20, length=0)
     # axs.scatter(target_pos[1], target_pos[0], s=100, c='green', marker='x', label='Target')
 
 
+def plot_scatter_traj_helper(axs, x_traj, y_traj,
+                             color_traj, alt_scatter_color, scatter_alpha=0.5,
+                             plot_smooth_traj=False, running_smooth=20, traj_alpha=.8,
+                             day_i=0, day_f=60, every_nth_point=2, TRIALS=1000,
+                             label='motor output', daycolor=False, daycolorbar=False):
+
+
+    if scatter_alpha > 0: 
+        if daycolor:
+            c_day = np.repeat(np.arange(day_i, day_f), TRIALS)
+
+            cs = axs.scatter(
+                x_traj[day_i * TRIALS: day_f * TRIALS][::every_nth_point],
+                y_traj[day_i * TRIALS: day_f * TRIALS][::every_nth_point], 25, c = c_day[::every_nth_point], cmap='plasma', label=label, edgecolors='none', alpha=scatter_alpha, marker='.', zorder=5
+            )
+            
+            if daycolorbar:
+                cax = axs.inset_axes((1.05, 0, 0.08, 1.0))
+                cbar = axs.figure.colorbar(cs, cax=cax)
+                cbar.set_label('DPH', fontsize=30, rotation=270)#, labelpad=10)
+                cbar.ax.tick_params(labelsize=20)
+                cbar.ax.set_yticks([day_i, day_f])
+                cbar.ax.set_yticklabels([day_i+40, day_f+40])
+
+        else:   
+            scatter_color = alt_scatter_color if plot_smooth_traj else color_traj
+            axs.scatter(
+                x_traj[day_i * TRIALS: day_f * TRIALS][::every_nth_point],
+                y_traj[day_i * TRIALS: day_f * TRIALS][::every_nth_point], 25, color = scatter_color, label=label, edgecolors='none', alpha=scatter_alpha, marker='.', zorder=5
+            )
+
+
+    if not daycolor:
+        axs.scatter(x_traj[0], y_traj[0],
+                    s=150, c=color_traj,
+                    marker='s', zorder=500)#, label='Starting Point')
+        axs.scatter(x_traj[-1], y_traj[-1],
+                    s=150, c='white',
+                    marker='X', zorder=500)#, label='Ending Point')
+        axs.scatter(x_traj[0], y_traj[0],
+                    s=50, c='white',
+                    marker='s', zorder=600, label=f'Initial {label}')
+        axs.scatter(x_traj[-1], y_traj[-1],
+                    s=50, c=color_traj,
+                    marker='x', zorder=600, label=f'Final {label}')
+
+    
+    if plot_smooth_traj:
+        xtraj_smooth = running_mean(np.array(x_traj), N = running_smooth)
+        ytraj_smooth = running_mean(np.array(y_traj), N = running_smooth)
+        
+        X = xtraj_smooth[day_i * TRIALS: day_f * TRIALS]
+        Y = ytraj_smooth[day_i * TRIALS: day_f * TRIALS]
+
+        V = [np.stack([x, y]) for x, y in zip(X, Y)]
+        V = np.array(V).reshape((1, len(X), 2))
+        lines = LineCollection(V, color=color_traj, alpha=traj_alpha, linewidth=1, zorder=100)
+        axs.add_collection(lines)
+
+    
+
 def plot_scatter_traj(obj, syll, day_i, day_f, every_nth_point,
-                      plot_smooth_traj = False, figsize=(10,10), scatter_alpha = 0.5, plot_daily_start_points = False, if_contour=False, contour_alpha=1, heatmap=False, colorbar=False, legend=False):
+                      plot_smooth_traj = False, smooth_window=20, traj_alpha=.8, figsize=(10,10), scatter_alpha = 0.5, plot_daily_start_points = False, if_contour=False, contour_alpha=1, heatmap=False, colorbar=False, legend=False, plot_motor=True, plot_cortex=False, plot_BG=False, daycolor=False, daycolorbar=False):
     fig, axs = plt.subplots(figsize=figsize)
     cmap = 'Greys'# color_contour_bckg # cmap param doesn't work # Match the colormap style from plot_landscape
     levels_ = 12 # 12 fix!
-    TRIALS = obj.TRIALS
+    # TRIALS = obj.TRIALS
+    
 
     # Plot background landscape
     if obj.LANDSCAPE == 0:
@@ -276,7 +342,6 @@ def plot_scatter_traj(obj, syll, day_i, day_f, every_nth_point,
         plot_syrinx(obj, syll, axs, levels_, cmap, if_contour=if_contour, contour_alpha=contour_alpha, heatmap=heatmap, colorbar=colorbar)
     
     # Plot agent trajectory
-    x_traj, y_traj = zip(*obj.actions[:, :, syll, :].reshape(-1, 2))
     # axs.plot(
     #     x_traj[day_i * TRIALS: day_f * TRIALS][::every_nth_point],
     #     y_traj[day_i * TRIALS: day_f * TRIALS][::every_nth_point], color = color_motor, label='Agent Trajectory', alpha=.5, linewidth=0.0, marker='.', markersize=1
@@ -299,25 +364,72 @@ def plot_scatter_traj(obj, syll, day_i, day_f, every_nth_point,
     #     y_traj[day_i * TRIALS: day_f * TRIALS][::every_nth_point], color = color_motor, label='Agent Trajectory', alpha=1, linewidth=0.0, marker='.', markersize=2, zorder=3
     # )
 
-    
-    scatter_color = 'grey' if plot_smooth_traj else color_motor
-    axs.scatter(
-        x_traj[day_i * TRIALS: day_f * TRIALS][::every_nth_point],
-        y_traj[day_i * TRIALS: day_f * TRIALS][::every_nth_point], 25, color = scatter_color, label='Motor output', edgecolors='none', alpha=scatter_alpha, marker='.', zorder=5
-    )
-    
-    if plot_smooth_traj:
-        running_smooth = 20
-        xtraj_smooth = running_mean(np.array(x_traj), N = running_smooth)
-        ytraj_smooth = running_mean(np.array(y_traj), N = running_smooth)
-        
-        X = xtraj_smooth[day_i * TRIALS: day_f * TRIALS]
-        Y = ytraj_smooth[day_i * TRIALS: day_f * TRIALS]
+    if plot_motor:
+        x_traj, y_traj = zip(*obj.actions[:, :, syll, :].reshape(-1, 2))
 
-        V = [np.stack([x, y]) for x, y in zip(X, Y)]
-        V = np.array(V).reshape((1, len(X), 2))
-        lines = LineCollection(V, color=color_motor, alpha=.8, linewidth=1, zorder=100)
-        axs.add_collection(lines)
+        plot_scatter_traj_helper(axs,
+                                 x_traj, y_traj,
+                                 color_motor,
+                                 alt_scatter_color = 'grey',
+                                 scatter_alpha=scatter_alpha,
+                                 plot_smooth_traj=plot_smooth_traj,
+                                 running_smooth=smooth_window,
+                                 traj_alpha=traj_alpha,
+                                 day_i=day_i, day_f=day_f, every_nth_point=every_nth_point,
+                                 TRIALS=obj.TRIALS,
+                                 label='motor output',
+                                 daycolor=daycolor,
+                                 daycolorbar=daycolorbar)
+
+
+
+    if plot_cortex:
+        ra_actions = obj.actions - obj.actions_bg  
+        x_ra, y_ra = zip(*ra_actions[:, :, syll, :].reshape(-1, 2))
+
+        plot_scatter_traj_helper(axs,
+                                 x_ra, y_ra,
+                                 color_cortical,
+                                 alt_scatter_color=sns_cmap[-1],
+                                 scatter_alpha=scatter_alpha,
+                                 plot_smooth_traj=plot_smooth_traj,
+                                 running_smooth=smooth_window,
+                                 traj_alpha=traj_alpha,
+                                 day_i=day_i, day_f=day_f, every_nth_point=every_nth_point,
+                                 TRIALS=obj.TRIALS,
+                                 label='cortical contribution',
+                                 daycolor=daycolor,
+                                 daycolorbar=daycolorbar)
+    
+
+    
+    if plot_BG:
+        bg_actions = obj.actions_bg   
+        x_bg, y_bg = zip(*bg_actions[:, :, syll, :].reshape(-1, 2))
+        
+        plot_scatter_traj_helper(axs,
+                                 x_bg, y_bg,
+                                 color_bg,
+                                 alt_scatter_color='gold',
+                                 scatter_alpha=scatter_alpha,
+                                 plot_smooth_traj=plot_smooth_traj,
+                                 running_smooth=smooth_window,
+                                 traj_alpha=traj_alpha,
+                                 day_i=day_i, day_f=day_f, every_nth_point=every_nth_point,
+                                 TRIALS=obj.TRIALS,
+                                 label='BG contribution',
+                                 daycolor=daycolor,
+                                 daycolorbar=daycolorbar)
+
+        if daycolor:
+            axs.scatter(0, 0,
+                        s=150, c='white',
+                        marker='o', zorder=500)
+            axs.scatter(0, 0,
+                        s=50, c=color_cortical,
+                        marker='o', zorder=600, label='Cortical contribution')
+            
+
 
     if plot_daily_start_points:
         x = x_traj[day_i * TRIALS: day_f * TRIALS][0::1000]
@@ -331,18 +443,6 @@ def plot_scatter_traj(obj, syll, day_i, day_f, every_nth_point,
         )
 
     
-    axs.scatter(x_traj[0], y_traj[0],
-                s=150, c='black',
-                marker='s', zorder=500)#, label='Starting Point')
-    axs.scatter(x_traj[-1], y_traj[-1],
-                s=150, c='white',
-                marker='X', zorder=500)#, label='Ending Point')
-    axs.scatter(x_traj[0], y_traj[0],
-                s=50, c='white',
-                marker='s', zorder=600, label='Initial output')
-    axs.scatter(x_traj[-1], y_traj[-1],
-                s=50, c='black',
-                marker='x', zorder=600, label='Final output')
     
     # Labels
     # axs.set_ylabel(r'$P$', fontsize=30)
@@ -436,8 +536,9 @@ def plot_landscape_only(obj, syll, contour_levels=12, contour_alpha=1, plot_colo
 
 
 ###### PLOT MOTOR OUTPUTS ######
-def plot_output(obj, syll, skip_size=1, window_size=10):
-    figure, (ax1, ax2) = plt.subplots(2,1)
+def plot_output(obj, syll, skip_size=1, window_size=10, plot_raw=True, plot_cortex=False, plot_BG=False, plot_alpha=1, figsize=None):
+    figure, (ax1, ax2) = plt.subplots(2,1, figsize=figsize)
+
     N_SYLL = obj.N_SYLL # To plot only one syllable at a time, set N_SYLL to 1 and plot the first syllable (syll=0)
     N_DAILY_MOTIFS = obj.TRIALS
     DAYS = obj.DAYS
@@ -455,18 +556,35 @@ def plot_output(obj, syll, skip_size=1, window_size=10):
     y_bg_traj = np.array(y_bg_traj)
     x_ra_traj = np.array(x_ra_traj)
     y_ra_traj = np.array(y_ra_traj)
-
+    
 
     # ax1.plot(obj.centers[syll, 1]*np.ones(N_DAILY_MOTIFS*DAYS),  color='black', linestyle='-', linewidth=1)
     # ax2.plot(obj.centers[syll, 0]*np.ones(N_DAILY_MOTIFS*DAYS),  color='black', linestyle='-', linewidth=1)
 
+    if plot_raw:
+        ax1.scatter(x, obj.actions[:,:,syll,0].reshape(DAYS*N_DAILY_MOTIFS)[::skip_size], s=1, color='grey', alpha=.2, marker='.', zorder=100)
+        ax2.scatter(x, obj.actions[:,:,syll,1].reshape(DAYS*N_DAILY_MOTIFS)[::skip_size], s=1, color='grey', alpha=.2, marker='.', zorder=100)
 
-    ax1.scatter(x, obj.actions[:,:,syll,0].reshape(DAYS*N_DAILY_MOTIFS)[::skip_size], s=1, color='grey', alpha=.2, marker='.')
-    ax2.scatter(x, obj.actions[:,:,syll,1].reshape(DAYS*N_DAILY_MOTIFS)[::skip_size], s=1, color='grey', alpha=.2, marker='.')
+    ax1.plot(running_mean(obj.actions[:,:,syll,0].reshape(DAYS*N_DAILY_MOTIFS), window_size), color=color_motor, lw=1, alpha=plot_alpha, zorder=101)
+    ax2.plot(running_mean(obj.actions[:,:,syll,1].reshape(DAYS*N_DAILY_MOTIFS), window_size), color=color_motor, lw=1, alpha=plot_alpha, zorder=101)
 
 
-    ax1.plot(running_mean(obj.actions[:,:,syll,0].reshape(DAYS*N_DAILY_MOTIFS), window_size), color=color_motor, lw=1)
-    ax2.plot(running_mean(obj.actions[:,:,syll,1].reshape(DAYS*N_DAILY_MOTIFS), window_size), color=color_motor, lw=1)
+
+    if plot_cortex:
+        if plot_raw:
+            ax1.scatter(x, x_ra_traj[::skip_size], s=1, color=color_cortical, alpha=.2, marker='.', zorder=50)
+            ax2.scatter(x, y_ra_traj[::skip_size], s=1, color=color_cortical, alpha=.2, marker='.', zorder=50)
+
+        ax1.plot(running_mean(x_ra_traj, window_size), color=color_cortical, lw=1, alpha=plot_alpha, zorder=50)
+        ax2.plot(running_mean(y_ra_traj, window_size), color=color_cortical, lw=1, alpha=plot_alpha, zorder=50)
+
+    if plot_BG:
+        if plot_raw:
+            ax1.scatter(x, x_bg_traj[::skip_size], s=1, color=color_bg, alpha=.2, marker='.', zorder=50)
+            ax2.scatter(x, y_bg_traj[::skip_size], s=1, color=color_bg, alpha=.2, marker='.', zorder=50)
+
+        ax1.plot(running_mean(x_bg_traj, window_size), color=color_bg, lw=1, alpha=plot_alpha, zorder=50)
+        ax2.plot(running_mean(y_bg_traj, window_size), color=color_bg, lw=1, alpha=plot_alpha, zorder=50)
 
     # Plot running average of cortical output (brown), BG output (grey) and total output (black)
     # Data
@@ -490,9 +608,8 @@ def plot_output(obj, syll, skip_size=1, window_size=10):
     #     ax2.plot(obj.centers[syll + 1, 1]*np.ones(N_DAILY_MOTIFS*DAYS),  color='red', linestyle='--', linewidth=1, label = 'Target')
     # elif N_SYLL == 1:
     
-
-    ax1.plot(obj.centers[syll, 1]*np.ones(N_DAILY_MOTIFS*DAYS),  color='grey', linestyle='--', linewidth=2, label = 'Global optimum')
-    ax2.plot(obj.centers[syll, 0]*np.ones(N_DAILY_MOTIFS*DAYS),  color='grey', linestyle='--', linewidth=2)
+    ax1.plot(obj.centers[syll, obj.LANDSCAPE*1]*np.ones(N_DAILY_MOTIFS*DAYS),  color='grey', linestyle='--', linewidth=2, label = 'Global optimum', zorder=500)
+    ax2.plot(obj.centers[syll, 1-obj.LANDSCAPE]*np.ones(N_DAILY_MOTIFS*DAYS),  color='grey', linestyle='--', linewidth=2, zorder=500)
 
 
     # Axis beauty
@@ -501,7 +618,7 @@ def plot_output(obj, syll, skip_size=1, window_size=10):
     # ax1.axhline(y=0, linestyle='--', color='black', alpha=0.1)
 #         ax1.axhline(y=obj.targetpos[0], linestyle='--', color='black', label='Global optimum')
     ax1.spines['top'].set_visible(False)
-    ax1.spines['right'].set_visible(False)
+    ax1.spines['left'].set_visible(False)
     ax1.spines['bottom'].set_visible(False)
     ax1.get_xaxis().set_ticks([])
     ax1.set_ylim(-LIMIT, LIMIT)
@@ -509,17 +626,30 @@ def plot_output(obj, syll, skip_size=1, window_size=10):
     ax1.set_yticks([-LIMIT, LIMIT], [0, 1] )
     ax1.set_xlim(-N_DAILY_MOTIFS, N_DAILY_MOTIFS*(DAYS))
     
+    # Move y-axes to the right side
+    for ax in (ax1, ax2):
+        ax.yaxis.tick_right()
+        ax.yaxis.set_label_position("right")
+
     ax2.set_xlabel('DPH', fontsize=20)
     ax2.set_yticks([-LIMIT, LIMIT], [0, 0.2] )
     ax2.set_ylim(-LIMIT, LIMIT)
     ax2.tick_params(labelsize=15)
     ax2.spines['top'].set_visible(False)
-    ax2.spines['right'].set_visible(False)
+    ax2.spines['left'].set_visible(False)
     ax2.set_xlim(-N_DAILY_MOTIFS, N_DAILY_MOTIFS*DAYS)
     # ax2.spines['bottom'].set_bounds(0, obj.n_days+obj.n_lesioned_days)
     
-    ax2.set_ylabel(r'$P$', fontsize=20, labelpad=-10)
-    ax1.set_ylabel(r'$T$', fontsize=20)
+    if obj.LANDSCAPE == 1:
+        ax2.set_ylabel(r'$P$', fontsize=20, labelpad=-10, rotation=270)
+        ax1.set_ylabel(r'$T$', fontsize=20, rotation=270)
+        ax1.set_yticks([-LIMIT, LIMIT], [0, 1] )
+        ax2.set_yticks([-LIMIT, LIMIT], [0, 0.2] )
+    else:
+        ax2.set_ylabel(r'$Y$', fontsize=20, rotation=270, labelpad=15)
+        ax1.set_ylabel(r'$X$', fontsize=20, rotation=270, labelpad=15)
+        ax1.set_yticks([-LIMIT, 0, LIMIT], [-1, 0, 1])
+        ax2.set_yticks([-LIMIT, 0, LIMIT], [-1, 0, 1])
     plt.legend(frameon=False, loc='center right', fontsize=12, bbox_to_anchor=(1.03,1))
     plt.xticks(range(0, N_DAILY_MOTIFS*(DAYS+1), 20*N_DAILY_MOTIFS), np.arange(40, DAYS+1+40, 20))
     ax1.legend()
@@ -529,6 +659,12 @@ def plot_output(obj, syll, skip_size=1, window_size=10):
     # plt.show()
 
 
-def save_figure(filename, format="png", dpi=600, metadata=None):
+def save_figure(filename, format="pdf", dpi=150, rasterized=True, metadata=None):
     os.makedirs("Plots", exist_ok=True)
+    if format=='.pdf' or format=='.svg': rasterized = True
+    if format=='.png': rasterized = False
+    if rasterized:
+        fig = plt.gcf()
+        for ax in fig.get_axes():
+            ax.set_rasterized(True)
     plt.savefig(os.path.join("Plots", f"{filename}.{format}"), dpi=dpi, bbox_inches="tight", metadata=metadata)
