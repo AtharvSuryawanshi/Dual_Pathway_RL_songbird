@@ -48,7 +48,7 @@ params:
   N_BG_CLUSTERS: 2
 
 # Memory efficieny params
-  RECORD_WEIGHTS: 1
+  RECORD_WEIGHTS: 0
 
 const:
   HVC_SIZE: 100
