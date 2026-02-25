@@ -21,7 +21,7 @@ with open(ROBUSTNESS_CONFIG, "r") as f:
 print(f"Robustness parameters loaded from {ROBUSTNESS_CONFIG}")
 
 NOS_SEEDS = 100
-time_per_iter = 12
+time_per_iter = 6.5
 state = 5
 np.random.seed(state)
 seeds = np.random.randint(0, 100000, NOS_SEEDS)

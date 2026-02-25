@@ -1,4 +1,4 @@
-parameter: LEARNING_RATE_RL
+parameter: JUMP_FACTOR
 section: params
 seeds:
 - 44
@@ -105,8 +105,8 @@ shape:
 - 100
 - 5
 values:
-- 0.1
-- 0.2
-- 0.3
-- 0.4
-- 0.5
+- 1.0
+- 2.0
+- 3.0
+- 4.0
+- 5.0
