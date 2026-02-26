@@ -659,19 +659,6 @@ def plot_output(obj, syll, skip_size=1, window_size=10, plot_raw=True, plot_cort
     # plt.show()
 
 
-def save_figure(filename, format="pdf", save=False, dpi=150, rasterized=True, metadata=None):
-    if save:
-        os.makedirs("Plots", exist_ok=True)
-        if format=='.pdf' or format=='.svg': rasterized = True
-        if format=='.png': rasterized = False
-        if rasterized:
-            fig = plt.gcf()
-            for ax in fig.get_axes():
-                ax.set_rasterized(True)
-        plt.savefig(os.path.join("Plots", f"{filename}.{format}"), dpi=dpi, bbox_inches="tight", metadata=metadata)
-    
-
-    
 def plot_position_change_helper(x1, y1,
                                 x2, y2,
                                 axs,
@@ -783,3 +770,304 @@ def plot_position_change(obj, syll, day_i, day_f,
                                 legend=legend)
 
 
+    
+def plot_position_change_helper(x1, y1,
+                                x2, y2,
+                                axs,
+                                color1, color2,
+                                alpha=0.5, ls='-',
+                                label1=None, label2=None,
+                                legend=False):
+    
+    x = x1
+    y = y1
+    c_val = np.arange(len(x))
+    axs.scatter(
+        x, y, 150, c = c_val, label=label1, edgecolors='none', alpha=alpha, marker='.', zorder=200, cmap='plasma'
+    )
+
+    x = x2
+    y = y2
+    c_val = np.arange(len(x))
+    axs.scatter(
+        x, y, 150, c = color2, label=label2, edgecolors='none', alpha=alpha, marker='.', zorder=200, cmap='plasma'
+    )
+
+
+    # Connect start and end points for each day
+    V = np.array([[[x1[i], y1[i]], [x2[i], y2[i]]] 
+                for i in range(len(x1))])
+    lines = LineCollection(V, array=c_val, cmap='plasma', alpha=alpha, linewidth=2, ls=ls)
+    axs.add_collection(lines)
+
+    if legend:
+        axs.legend(facecolor='lightgrey')#, edgecolor='black', framealpha=0.8)
+
+
+    plt.tight_layout()
+
+
+    
+def plot_jump_size_over_time_helper(x1,
+                                x2,
+                                axs,
+                                color,
+                                alpha=0.9, ls='-',
+                                euclidean=False,
+                                label_legend=None,
+                                label_y=None,
+                                legend=False):
+
+    if euclidean:
+        y1 = np.array(x1[1])   
+        x1 = np.array(x1[0])
+        y2 = np.array(x2[1])
+        x2 = np.array(x2[0])
+        jump = np.sqrt((x2 - x1)**2 + (y2 - y1)**2)
+    else:
+        x1 = np.array(x1[0])
+        x2 = np.array(x2[0])
+        jump = np.abs(x2 - x1)
+
+
+    x = np.arange(jump.shape[0])
+    if label_legend is 'Night change':
+        x = x + 0.5 # Shift night change points to the right for better visibility
+    axs.scatter(
+        x, jump, 150, c = color, label=label_legend, edgecolors='none', alpha=alpha, marker='.'
+    )
+
+    if legend:
+        axs.legend(facecolor='lightgrey')#, edgecolor='black', framealpha=0.8)
+
+    axs.set_xlabel('DPH', fontsize=20)
+    axs.set_ylabel(label_y+' jump size', fontsize=20)
+    axs.set_xticks(range(0, int(jump.shape[0]+2), 10))
+    axs.set_xticklabels(range(40, 40+int(jump.shape[0]+2), 10))
+    axs.set_yticks(range(0, int(np.ceil(jump.max()+1))))
+    axs.set_xlim(-1, jump.shape[0]+1)
+    axs.spines['left'].set_bounds(0, int(np.ceil(jump.max())))
+    axs.spines['bottom'].set_bounds(0, int(jump.shape[0]+1))
+    axs.spines['top'].set_visible(False)
+    axs.spines['right'].set_visible(False)
+
+    plt.tight_layout()
+
+
+
+
+def plot_jump_size_over_time(obj, syll, day_i, day_f,
+                      figsize=(10,4), alpha = 0.5,
+                      legend=False,
+                      plot_motor=True, plot_cortex=False, plot_BG=False, plot_reward=False,
+                      day_change=True, night_change=False, start_rendition_change=False, end_rendition_change=False):
+                    # , plot_cortex=False, plot_BG=False,
+                    #   daycolor=False, daycolorbar=False):
+    figure_size = (figsize[0], figsize[1]*(plot_motor + plot_cortex + plot_BG + plot_reward)) # Adjust height of figure based on number of subplots
+    fig, axs = plt.subplots(plot_motor+plot_cortex+plot_BG+plot_reward, 1, figsize=figure_size)
+    
+    if plot_motor + plot_cortex + plot_BG + plot_reward == 1:
+        axs = [axs]
+
+    cmap = 'Greys'# color_contour_bckg # cmap param doesn't work # Match the colormap style from plot_landscape
+    levels_ = 12 # 12 fix!
+    TRIALS = obj.TRIALS
+    
+    color_day = 'orange'
+    color_night = 'black'
+    color_rendition_start = 'purple'
+    color_rendition_end = 'red'
+    
+    types = ['Motor', 'Cortex', 'BG', 'Reward']
+    plot_flags = [plot_motor, plot_cortex, plot_BG, plot_reward]
+
+    for i, type in enumerate(types):
+        print(type)
+        if type=='Motor' and plot_motor:
+            x_traj, y_traj = zip(*obj.actions[:, :, syll, :].reshape(-1, 2))
+            euclidean = True
+
+        if type=='Cortex' and plot_cortex:
+            ra_actions = obj.actions - obj.actions_bg  
+            x_traj, y_traj = zip(*ra_actions[:, :, syll, :].reshape(-1, 2))
+            euclidean = True
+        
+        if type=='BG' and plot_BG:
+            bg_actions = obj.actions_bg
+            x_traj, y_traj = zip(*bg_actions[:, :, syll, :].reshape(-1, 2))
+            euclidean = True
+            
+        if type=='Reward' and plot_reward:
+            rewards = obj.rewards  
+            x_traj = rewards[:, :, syll].reshape(-1, 1)
+            # Just a duplicate of x_traj to use the same plotting function, since reward is 1D
+            y_traj = rewards[:, :, syll].reshape(-1, 1)
+            euclidean = False
+            
+
+
+        x_day_start = x_traj[day_i * TRIALS: day_f * TRIALS][0::TRIALS]
+        y_day_start = y_traj[day_i * TRIALS: day_f * TRIALS][0::TRIALS]
+
+        x_day_end = x_traj[day_i * TRIALS: day_f * TRIALS][TRIALS-1::TRIALS]
+        y_day_end = y_traj[day_i * TRIALS: day_f * TRIALS][TRIALS-1::TRIALS]
+
+
+        x_day_start_1 = x_traj[day_i * TRIALS: day_f * TRIALS][1::TRIALS]
+        y_day_start_1 = y_traj[day_i * TRIALS: day_f * TRIALS][1::TRIALS]
+
+
+
+        x_day_end_1 = x_traj[day_i * TRIALS: day_f * TRIALS][TRIALS-2::TRIALS]
+        y_day_end_1 = y_traj[day_i * TRIALS: day_f * TRIALS][TRIALS-2::TRIALS]
+
+
+        # Plot position change from start to end of day
+        if day_change:   
+ 
+            plot_jump_size_over_time_helper([x_day_start, y_day_start],
+                                    [x_day_end, y_day_end],
+                                    axs[i],
+                                    color_day,
+                                    alpha=alpha,
+                                    ls='-',
+                                    euclidean=euclidean,
+                                    label_legend='Day change',
+                                    label_y=type,
+                                    legend=legend*(i==0))
+        
+        # and from end of preceding night to start of day
+        if night_change:
+            plot_jump_size_over_time_helper([x_day_end, y_day_end],
+                                    [x_day_end_1, y_day_end_1],
+                                    axs[i],
+                                    color_night,
+                                    alpha=alpha,
+                                    ls='--',
+                                    euclidean=True,
+                                    label_legend='Night change',
+                                    label_y=type,
+                                    legend=legend*(i==0))
+
+
+
+        # and from end of preceding night to start of day
+        if start_rendition_change:
+            plot_jump_size_over_time_helper([x_day_start, y_day_start],
+                                    [x_day_start_1, y_day_start_1],
+                                    axs[i],
+                                    color_rendition_start,
+                                    alpha=alpha,
+                                    ls='-',
+                                    euclidean=True,
+                                    label_legend='Single rendition change day start',
+                                    label_y=type,
+                                    legend=legend*(i==0))
+
+        # and from end of preceding night to start of day
+        if end_rendition_change:
+            plot_jump_size_over_time_helper([x_day_end, y_day_end],
+                                    [x_day_end_1, y_day_end_1],
+                                    axs[i],
+                                    color_rendition_end,
+                                    alpha=alpha,
+                                    ls='-',
+                                    euclidean=True,
+                                    label_legend='Single rendition change day end',
+                                    label_y=type,
+                                    legend=legend*(i==0))
+
+def plot_weights_unsorted(obj, type, chosen_syll=0):
+    figure, (ax2, ax1) = plt.subplots(2, 1, figsize=(20, 6))
+
+    if type=='HVC-RA':
+        weights = obj.hvc_ra_array_all[:,:,chosen_syll,chosen_syll,:]
+    if type=='HVC-BG':
+        weights = obj.hvc_bg_array_all[:,:,chosen_syll,chosen_syll,:]
+
+    post_synaptic_layer_size = weights.shape[-1]
+    DAYS = obj.DAYS
+    N_DAILY_MOTIFS = obj.TRIALS
+
+
+    # ax1.axvline(x=N_DAYS_INTACT * N_DAILY_MOTIFS, linestyle='--', color='grey', lw=1)
+    # ax2.axvline(x=N_DAYS_INTACT * N_DAILY_MOTIFS, linestyle='--', color='grey', lw=1)
+    # cm = plt.cm.get_cmap('RdGy_r')
+    if type=='HVC-RA':
+        color = color_cortical
+    if type=='HVC-BG':
+        color = color_bg
+
+    cm = LinearSegmentedColormap.from_list('grad', ['white', color])
+
+    plot_array1 = weights.reshape(DAYS*N_DAILY_MOTIFS, post_synaptic_layer_size)
+    im1 = ax1.imshow((plot_array1[:,:].T), cmap=cm, aspect='auto', interpolation='none', vmin = -1, vmax = 1)
+
+    plot_array2 = weights.reshape(DAYS*N_DAILY_MOTIFS, post_synaptic_layer_size)
+    ax2.plot(np.abs(plot_array2[::1, :]), color=color, alpha=.5, linewidth=1)
+
+    figure.subplots_adjust(right=1.3)
+    ax1_pos = ax1.get_position()
+    cbar_ax = figure.add_axes([1, ax1_pos.y0+.02, .01, ax1_pos.height-.01])
+    cbar = figure.colorbar(im1, cax=cbar_ax)
+    cbar.set_label('Synaptic strength', fontsize=15, rotation=270, labelpad=15)
+    cbar.set_ticks([-1, 1])
+
+    
+    # figure.subplots_adjust(right=1.2)
+    # cbar_ax = figure.add_axes([1.05, 0.16, 0.03, 0.35]) # type:ignore
+    # cbar = figure.colorbar(im1, cax=cbar_ax)
+    # cbar.set_label('Activity level', fontsize=15)
+    # cbar.set_ticks([0, 1])
+
+    # ax1.vlines(BG_INTACT_DAYS * N_DAILY_MOTIFS, 0, 8, color='grey', linestyle='--', lw=1)   
+    # ax2.vlines(BG_INTACT_DAYS * N_DAILY_MOTIFS, 0, 8, color='grey', linestyle='--', lw=1)
+    # # ax1.axhline(y=0, linestyle='--', color='black', alpha=0.1)
+
+    ax1.spines['top'].set_visible(False)
+    ax1.spines['right'].set_visible(False)
+    ax1.set_xticks([0, 20*N_DAILY_MOTIFS, 40*N_DAILY_MOTIFS, 60*N_DAILY_MOTIFS], np.arange(40, 40 + DAYS+1, 20))
+    ax1.tick_params(labelsize=15)
+    ax1.set_yticks([0, post_synaptic_layer_size])
+    ax1.set_xlim(-N_DAILY_MOTIFS, DAYS*N_DAILY_MOTIFS)
+    # ax1.set_ylim(-0.5, 7.5)
+    ax1.set_xlabel('DPH', fontsize=20)
+    ax1.spines['bottom'].set_bounds(0, DAYS*N_DAILY_MOTIFS)
+    ax1.spines['left'].set_bounds(0, post_synaptic_layer_size)
+
+    # ax2.set_ylim(-0.5, 7.5)
+    ax2.set_xlabel('DPH', fontsize=20)
+    ax2.set_yticks([0, 1])
+    ax2.spines['left'].set_bounds(0, 1)
+    ax2.set_xticks([0, 20*N_DAILY_MOTIFS, 40*N_DAILY_MOTIFS, 60*N_DAILY_MOTIFS], np.arange(40, 40 + DAYS+1, 20))
+    ax2.set_xlim(-N_DAILY_MOTIFS, DAYS * N_DAILY_MOTIFS)
+    ax2.tick_params(labelsize=15)
+    ax2.spines['top'].set_visible(False)
+    ax2.spines['right'].set_visible(False)
+    ax2.spines['bottom'].set_bounds(0, DAYS*N_DAILY_MOTIFS) 
+
+    if type=='HVC-RA':
+        ax1.set_ylabel('HVC-RA\nsynapse', fontsize=20, labelpad=-20)
+        ax2.set_ylabel('HVC-RA\nsynaptic\nstrength', fontsize=20)
+    
+    if type=='HVC-BG':
+        ax1.set_ylabel('HVC-BG\nsynapse', fontsize=20, labelpad=-20)
+        ax2.set_ylabel('HVC-BG\nsynaptic\nstrength', fontsize=20)
+
+    plt.tight_layout()
+
+
+
+def save_figure(filename, format="pdf", save=False, dpi=150, rasterized=True, metadata=None):
+    if save:
+        os.makedirs("Plots", exist_ok=True)
+        if format=='.pdf' or format=='.svg': rasterized = True
+        if format=='.png': rasterized = False
+        if rasterized:
+            fig = plt.gcf()
+            for ax in fig.get_axes():
+                ax.set_rasterized(True)
+        plt.savefig(os.path.join("Plots", f"{filename}.{format}"), dpi=dpi, bbox_inches="tight", metadata=metadata)
+    
+
+    
