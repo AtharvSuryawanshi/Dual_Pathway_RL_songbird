@@ -659,12 +659,127 @@ def plot_output(obj, syll, skip_size=1, window_size=10, plot_raw=True, plot_cort
     # plt.show()
 
 
-def save_figure(filename, format="pdf", dpi=150, rasterized=True, metadata=None):
-    os.makedirs("Plots", exist_ok=True)
-    if format=='.pdf' or format=='.svg': rasterized = True
-    if format=='.png': rasterized = False
-    if rasterized:
-        fig = plt.gcf()
-        for ax in fig.get_axes():
-            ax.set_rasterized(True)
-    plt.savefig(os.path.join("Plots", f"{filename}.{format}"), dpi=dpi, bbox_inches="tight", metadata=metadata)
+def save_figure(filename, format="pdf", save=False, dpi=150, rasterized=True, metadata=None):
+    if save:
+        os.makedirs("Plots", exist_ok=True)
+        if format=='.pdf' or format=='.svg': rasterized = True
+        if format=='.png': rasterized = False
+        if rasterized:
+            fig = plt.gcf()
+            for ax in fig.get_axes():
+                ax.set_rasterized(True)
+        plt.savefig(os.path.join("Plots", f"{filename}.{format}"), dpi=dpi, bbox_inches="tight", metadata=metadata)
+    
+
+    
+def plot_position_change_helper(x1, y1,
+                                x2, y2,
+                                axs,
+                                color1, color2,
+                                alpha=0.5, ls='-',
+                                label1=None, label2=None,
+                                legend=False):
+    
+    x = x1
+    y = y1
+    c_val = np.arange(len(x))
+    axs.scatter(
+        x, y, 150, c = c_val, label=label1, edgecolors='none', alpha=alpha, marker='.', zorder=200, cmap='plasma'
+    )
+
+    x = x2
+    y = y2
+    c_val = np.arange(len(x))
+    axs.scatter(
+        x, y, 150, c = color2, label=label2, edgecolors='none', alpha=alpha, marker='.', zorder=200, cmap='plasma'
+    )
+
+
+    # Connect start and end points for each day
+    V = np.array([[[x1[i], y1[i]], [x2[i], y2[i]]] 
+                for i in range(len(x1))])
+    lines = LineCollection(V, array=c_val, cmap='plasma', alpha=alpha, linewidth=2, ls=ls)
+    axs.add_collection(lines)
+
+    if legend:
+        axs.legend(facecolor='lightgrey')#, edgecolor='black', framealpha=0.8)
+
+
+    plt.tight_layout()
+
+
+
+
+def plot_position_change(obj, syll, day_i, day_f,
+                      figsize=(10,10), alpha = 0.5,
+                      if_contour=False, contour_alpha=1,
+                      heatmap=False, colorbar=False, legend=False,
+                      plot_motor=True, plot_cortex=False, plot_BG=False,
+                      day_change=True, night_change=True):
+                    # , plot_cortex=False, plot_BG=False,
+                    #   daycolor=False, daycolorbar=False):
+    fig, axs = plt.subplots(figsize=figsize)
+    cmap = 'Greys'# color_contour_bckg # cmap param doesn't work # Match the colormap style from plot_landscape
+    levels_ = 12 # 12 fix!
+    TRIALS = obj.TRIALS
+    
+
+    # Plot background landscape
+    if obj.LANDSCAPE == 0:
+        print("Plotting artificial landscape")
+        plot_artificial(obj, syll, axs, levels_, cmap, if_contour=if_contour, contour_alpha=contour_alpha, heatmap=heatmap, colorbar=colorbar)
+    else:
+        print("Plotting syrinx landscape")
+        plot_syrinx(obj, syll, axs, levels_, cmap, if_contour=if_contour, contour_alpha=contour_alpha, heatmap=heatmap, colorbar=colorbar)
+    
+
+
+    color_day = 'orange'
+    color_night = 'black'
+
+
+    if plot_motor:
+        x_traj, y_traj = zip(*obj.actions[:, :, syll, :].reshape(-1, 2))
+
+    
+    if plot_cortex:
+        ra_actions = obj.actions - obj.actions_bg  
+        x_traj, y_traj = zip(*ra_actions[:, :, syll, :].reshape(-1, 2))
+    
+
+    if plot_BG:
+        bg_actions = obj.actions_bg  
+        x_traj, y_traj = zip(*bg_actions[:, :, syll, :].reshape(-1, 2))
+    
+
+
+    x_day_start = x_traj[day_i * TRIALS: day_f * TRIALS][0::TRIALS]
+    y_day_start = y_traj[day_i * TRIALS: day_f * TRIALS][0::TRIALS]
+
+    x_day_end = x_traj[day_i * TRIALS: day_f * TRIALS][TRIALS-1::TRIALS]
+    y_day_end = y_traj[day_i * TRIALS: day_f * TRIALS][TRIALS-1::TRIALS]
+
+    # Plot position change from start to end of day
+    if day_change:    
+        plot_position_change_helper(x_day_start, y_day_start,
+                                x_day_end, y_day_end,
+                                axs,
+                                color_day, color_night,
+                                alpha=alpha,
+                                ls='-',
+                                label1='Start of day', label2='End of day',
+                                legend=legend)
+    
+    # and from end of preceding night to start of day
+    if night_change:
+        plot_position_change_helper(
+                                x_day_start[1:], y_day_start[1:],
+                                x_day_end[:-1], y_day_end[:-1],
+                                axs,
+                                color_day, color_night,
+                                alpha=alpha,
+                                ls='--',
+                                label1='Start of day'*(day_change==0), label2='End of preceding night'*(day_change==0),
+                                legend=legend)
+
+
