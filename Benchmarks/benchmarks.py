@@ -11,9 +11,11 @@ from dual_pathway_model.directory_functions import *
 from dual_pathway_model.model import build_and_run, NN, params_base
 
 # directory where robustness.py lives
-benchmark_models = ['Dual_Pathway_Model',
-                    'Std_RL_Model',
-                    'Dev_RL_Model']
+# benchmark_models = ['Dual_Pathway_Model',
+#                     'Std_RL_Model',
+#                     'Dev_RL_Model']
+# choose which models to run
+benchmark_models = ['Dev_RL_Model']
                     # 'Simulated_Annealing_Model']
 
 params = {}
@@ -40,6 +42,7 @@ params['Dev_RL_Model'] = update_params(
                 "params.HEBBIAN_LEARNING": 0,
                 "params.BG_NOISE_DECAY": 2.2, 
                 "params.N_SYLL": 1,
+                # "params.DAYS": 2, # for quick testing
             }
         )
 
