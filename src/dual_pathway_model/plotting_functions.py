@@ -847,9 +847,9 @@ def plot_jump_size_over_time_helper(x1,
         x, jump, 150, c = color, label=label_legend, edgecolors='none', alpha=alpha, marker='.'
     )
     if print_initial_jump_size:
-        print(f"Initial jump size: {jump[0:5].mean():.3f}")
+        print(f"Initial jump size: {jump[0:5].mean():.3f} +- {jump[0:5].std():.3f}")
     if print_final_jump_size:
-        print(f"Final jump size: {jump[-5:].mean():.3f}")
+        print(f"Final jump size: {jump[-5:].mean():.3f} +- {jump[-5:].std():.3f}")
 
     if legend:
         axs.legend(facecolor='lightgrey')#, edgecolor='black', framealpha=0.8)
