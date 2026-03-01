@@ -225,7 +225,7 @@ class Environment:
                     input_hvc = np.zeros(self.hvc_size)
                     input_hvc[syll] = 1
                     # reward, action and baseline
-                    action, ra, bg, action_bg = self.model.forward(input_hvc, parameters, iter)
+                    action, ra, bg, action_bg = self.model.forward(input_hvc, parameters, day*self.TRIALS + iter)
                     if day < self.HEARING_INTACT_DAYS:
                         reward = self.get_reward(action, syll)
                         reward_baseline = 0
