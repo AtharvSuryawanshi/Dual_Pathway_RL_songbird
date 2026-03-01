@@ -35,13 +35,20 @@ def plot_results_violin(returns, params,
     sorted_params = list(params)
     n_values = len(sorted_params)
     above_threshold2 = np.zeros(n_values)
+    std_vals = np.zeros(n_values)
+    mean_vals = np.zeros(n_values)
     data, labels_list = [], []
 
     for i in range(n_values):
         col = returns[:, i]
         above_threshold2[i] = np.mean(col > 0.7)
+        std_vals[i] = np.std(col)
+        mean_vals[i] = np.mean(col)
         data.extend(col)
         labels_list.extend([sorted_params[i]] * len(col))
+    print("Above threshold success rates:", above_threshold2)
+    print("Standard deviations:", std_vals*100)
+    print("Mean values:", mean_vals*100)
 
 
     # --- Figure & layout ---
@@ -172,6 +179,7 @@ def plot_results_violin(returns, params,
 
     ax2.spines['top'].set_visible(False)
     ax2.spines['left'].set_visible(False)
+    print("Means")
     # plt.show()
 
 
