@@ -824,7 +824,9 @@ def plot_jump_size_over_time_helper(x1,
                                 euclidean=False,
                                 label_legend=None,
                                 label_y=None,
-                                legend=False):
+                                legend=False,
+                                print_initial_jump_size=False,
+                                print_final_jump_size=False):
 
     if euclidean:
         y1 = np.array(x1[1])   
@@ -844,6 +846,10 @@ def plot_jump_size_over_time_helper(x1,
     axs.scatter(
         x, jump, 150, c = color, label=label_legend, edgecolors='none', alpha=alpha, marker='.'
     )
+    if print_initial_jump_size:
+        print(f"Initial jump size: {jump[0:5].mean():.3f}")
+    if print_final_jump_size:
+        print(f"Final jump size: {jump[-5:].mean():.3f}")
 
     if legend:
         axs.legend(facecolor='lightgrey')#, edgecolor='black', framealpha=0.8)
@@ -955,7 +961,9 @@ def plot_jump_size_over_time(obj, syll, day_i, day_f,
                                     euclidean=True,
                                     label_legend='Night change',
                                     label_y=type,
-                                    legend=legend*(i==0))
+                                    legend=legend*(i==0), 
+                                    print_initial_jump_size=True,
+                                    print_final_jump_size=True)
 
 
 
