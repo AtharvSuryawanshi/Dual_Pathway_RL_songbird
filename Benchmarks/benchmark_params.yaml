@@ -4,7 +4,7 @@
 # Comment or uncomment parameters as needed for robustness testing
 BG_NOISE:
   section: params
-  values: [0.05, 0.1, 0.15, 0.2, 0.3, 0.5]
+  values: [0.05, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5]
 
 # RA_NOISE:
 #   section: params
