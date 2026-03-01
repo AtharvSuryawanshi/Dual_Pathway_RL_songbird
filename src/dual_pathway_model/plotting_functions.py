@@ -29,7 +29,8 @@ def plot_results_violin(returns, params,
                         big_xlabel=None, xticklabels=None,
                         xticklabel_rotation=0,
                         print_success_rate=True,
-                        height_ratio=[2.4, 5]
+                        height_ratio=[2.4, 5],
+                        print_stats=False
                         ):
     returns = np.asarray(returns)
     sorted_params = list(params)
@@ -37,6 +38,7 @@ def plot_results_violin(returns, params,
     above_threshold2 = np.zeros(n_values)
     std_vals = np.zeros(n_values)
     mean_vals = np.zeros(n_values)
+    median_vals_above_threshold = np.zeros(n_values)
     data, labels_list = [], []
 
     for i in range(n_values):
@@ -44,11 +46,14 @@ def plot_results_violin(returns, params,
         above_threshold2[i] = np.mean(col > 0.7)
         std_vals[i] = np.std(col)
         mean_vals[i] = np.mean(col)
+        median_vals_above_threshold[i] = np.median(col[col > 0.7])
         data.extend(col)
         labels_list.extend([sorted_params[i]] * len(col))
-    print("Above threshold success rates:", above_threshold2)
-    print("Standard deviations:", std_vals*100)
-    print("Mean values:", mean_vals*100)
+    if print_stats:
+        print("Above threshold success rates:", above_threshold2)
+        print("Standard deviations:", std_vals*100)
+        print("Mean values:", mean_vals*100)
+        print("Median values above threshold:", median_vals_above_threshold*100)
 
 
     # --- Figure & layout ---
