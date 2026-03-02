@@ -81,7 +81,7 @@ for model_idx, model in enumerate(benchmark_models):
         section = param_info["section"]
         values = param_info["values"]
         if model == "Simulated_Annealing_Model" and param_name == "BG_NOISE":
-            values = [0.0001, 0.001, 0.005, 0.01, 0.05, 0.1]
+            values = [0.001, 0.005, 0.01, 0.05, 0.1, 0.5]
 
         # param_type = param_info.get("type", "float")
 
