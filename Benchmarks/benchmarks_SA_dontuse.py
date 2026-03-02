@@ -8,7 +8,6 @@ import queue
 from scipy.integrate import solve_ivp
 from dual_pathway_model.functions import *
 from dual_pathway_model.directory_functions import *
-from dual_pathway_model.model import build_and_run, NN, params_base
 from dual_pathway_model.model_SA import build_and_run, NN_SA, params_base_SA
 
 # directory where robustness.py lives
@@ -19,33 +18,6 @@ from dual_pathway_model.model_SA import build_and_run, NN_SA, params_base_SA
 benchmark_models = ['Simulated_Annealing_Model']
 
 params = {}
-params['Dual_Pathway_Model'] = update_params(
-            params_base,
-            **{
-                "params.N_SYLL": 1,
-            }
-        )
-
-params['Std_RL_Model'] = update_params(
-            params_base,
-            **{
-                "params.ANNEALING": 0,
-                "params.HEBBIAN_LEARNING": 0,
-                "params.N_SYLL": 1,
-            }
-        )
-
-params['Dev_RL_Model'] = update_params(
-            params_base,
-            **{
-                "params.ANNEALING": 0,
-                "params.HEBBIAN_LEARNING": 0,
-                "params.BG_NOISE_DECAY": 2.2, 
-                "params.N_SYLL": 1,
-                # "params.DAYS": 2, # for quick testing
-            }
-        )
-
 params['Simulated_Annealing_Model'] = update_params(
             params_base_SA,
             **{
@@ -53,6 +25,7 @@ params['Simulated_Annealing_Model'] = update_params(
                 # "params.DAYS": 2, # for quick testing
             }
         )
+
 
 HERE = Path(__file__).resolve().parent
 
@@ -81,7 +54,7 @@ for model_idx, model in enumerate(benchmark_models):
         section = param_info["section"]
         values = param_info["values"]
         if model == "Simulated_Annealing_Model" and param_name == "BG_NOISE":
-            values = [0.0001, 0.001, 0.005, 0.01, 0.05, 0.1]
+            values = [0.005, 0.01, 0.05, 0.1, 0.2, 0.5]
 
         # param_type = param_info.get("type", "float")
 
@@ -101,7 +74,7 @@ for model_idx, model in enumerate(benchmark_models):
             print(f" -- {param_name} = {val}")
 
             parameters = update_params(
-                params[model],
+                params[model]
                 **{
                     f"{section}.{param_name}": val,
                     # "params.DAYS": 2, # for quick testing
@@ -112,10 +85,7 @@ for model_idx, model in enumerate(benchmark_models):
                 raise ValueError("N_SYLL must be 1 for robustness analysis.")
 
             for seed_idx, seed in enumerate(seeds):
-                if model == "Simulated_Annealing_Model":
-                    perf = build_and_run(seed, parameters, NN_SA)
-                else:
-                    perf = build_and_run(seed, parameters, NN)
+                perf = build_and_run(seed, parameters, NN_SA)
                 terminal_performance[seed_idx, val_idx] = perf
                 print(f"    Seed {seed} -> {perf}")
 
