@@ -216,7 +216,7 @@ class Environment:
         # JUMP_FACTOR = parameters['params']['JUMP_FACTOR']
         # HARD_BOUND = parameters['params']['HARD_BOUND']
         prev_reward = 0
-        noise = parameters['params']['NOISE']
+        noise = parameters['params']['BG_NOISE']
         action = np.random.uniform(-1.5, 1.5, self.mc_size)
         # each day, 1000 trial, n_syll syllables
         for day in tqdm(range(self.DAYS)):

@@ -63,7 +63,7 @@ with open(BENCHMARK_CONFIG, "r") as f:
 
 print(f"Benchmark parameters loaded from {BENCHMARK_CONFIG}")
 
-NOS_SEEDS = 2
+NOS_SEEDS = 5
 time_per_iter = 5.5
 state = 5
 np.random.seed(state)

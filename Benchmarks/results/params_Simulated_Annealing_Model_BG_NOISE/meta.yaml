@@ -1,10 +1,13 @@
 parameter: BG_NOISE
 section: params
 seeds:
+- 5520
 - 18638
+- 20463
 - 35683
+- 59465
 shape:
-- 2
+- 5
 - 6
 values:
 - 0.0001

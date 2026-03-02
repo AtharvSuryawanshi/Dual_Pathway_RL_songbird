@@ -5,7 +5,7 @@ params:
   # BG_INTACT_DAYS: 61 # i.e. 
   # HEARING_INTACT_DAYS: 61
   N_SYLL: 1
-  NOISE: 0.01
+  BG_NOISE: 0.01
   TEMPERATURE: 0.05
 
 # Simulation type
