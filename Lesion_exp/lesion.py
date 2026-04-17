@@ -58,7 +58,7 @@ for param_name, param_info in lesion_cfg.items():
             **{
                 f"{section}.{param_name}": val,
                 "params.N_SYLL": 1,
-                # "params.DAYS": 2, # for quick testing
+                "params.DAYS": 61, # for quick testing
             }
         )
 
