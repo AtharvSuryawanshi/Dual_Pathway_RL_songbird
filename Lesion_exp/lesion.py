@@ -48,6 +48,7 @@ for param_name, param_info in lesion_cfg.items():
     print(f"\nRunning robustness for {section}.{param_name}")
 
     terminal_performance = np.zeros((NOS_SEEDS, len(values), 3))
+    terminal_motor_var = np.zeros((NOS_SEEDS, len(values), 3))
 
     for val_idx, val in enumerate(values):
         val = float(val)  # ensure val is a float for YAML serialization
@@ -58,7 +59,7 @@ for param_name, param_info in lesion_cfg.items():
             **{
                 f"{section}.{param_name}": val,
                 "params.N_SYLL": 1,
-                "params.DAYS": 61, # for quick testing
+                "params.DAYS": 62, # for quick testing
             }
         )
 
@@ -66,14 +67,17 @@ for param_name, param_info in lesion_cfg.items():
             raise ValueError("N_SYLL must be 1 for robustness analysis.")
 
         for seed_idx, seed in enumerate(seeds):
-            terminal_perf, before_lesion, after_lesion = build_and_run(seed, parameters, NN, lesion = True)
+            terminal_perf, before_lesion, after_lesion, motor_var_terminal, motor_var_before, motor_var_after = build_and_run(seed, parameters, NN, lesion = True, motor_variability = True)
             terminal_performance[seed_idx, val_idx, :] = terminal_perf, before_lesion, after_lesion
+            print(motor_var_terminal, motor_var_before, motor_var_after)
+            terminal_motor_var[seed_idx, val_idx, :] = motor_var_terminal, motor_var_before, motor_var_after
             print(f"    Seed {seed} -> {terminal_perf}, {before_lesion}, {after_lesion}")
 
     results_dir = HERE / "results" / f"{section}_{param_name}"
     results_dir.mkdir(parents=True, exist_ok=True)
 
     np.save(results_dir / "terminal_performance.npy", terminal_performance)
+    np.save(results_dir / "terminal_motor_var.npy", terminal_motor_var)
 
     with open(results_dir / "meta.yaml", "w") as f:
         yaml.safe_dump(

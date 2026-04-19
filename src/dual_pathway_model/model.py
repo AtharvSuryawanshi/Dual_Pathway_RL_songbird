@@ -501,7 +501,8 @@ def build_and_run(seed, parameters, NN, lesion = False,
                   output_reward= False, 
                   output_action= False,
                   plot = False,
-                  find_nos_peaks = False):
+                  find_nos_peaks = False,
+                  motor_variability = False):
     N_SYLL = parameters['params']['N_SYLL']
     DAYS = parameters['params']['DAYS']
     TRIALS = parameters['params']['TRIALS']
@@ -541,7 +542,12 @@ def build_and_run(seed, parameters, NN, lesion = False,
         outputs.append(np.mean(rewards[-100:], axis=0))
         # return rewards after lesion and before lesion 
     if lesion: # terminal performance; before lesion; after lesion
-        return np.mean(rewards[-100:], axis=0), np.mean(rewards[int((BG_INTACT_DAYS-1)*TRIALS-100):int((BG_INTACT_DAYS-1)*TRIALS)], axis=0), np.mean(rewards[int((BG_INTACT_DAYS+1)*TRIALS-100):int((BG_INTACT_DAYS+1)*TRIALS)], axis=0)
+        if motor_variability:
+            mean_motor_var = np.mean(np.std(env.actions[:,:,i,:], axis = 1),axis=1)
+            print(mean_motor_var)
+            return np.mean(rewards[-100:], axis=0), np.mean(rewards[int((BG_INTACT_DAYS-1)*TRIALS-100):int((BG_INTACT_DAYS-1)*TRIALS)], axis=0), np.mean(rewards[int((BG_INTACT_DAYS+1)*TRIALS-100):int((BG_INTACT_DAYS+1)*TRIALS)], axis=0) ,mean_motor_var[int(BG_INTACT_DAYS) - 1], mean_motor_var[int(BG_INTACT_DAYS)], mean_motor_var[int(BG_INTACT_DAYS) + 1]
+        else:
+            return np.mean(rewards[-100:], axis=0), np.mean(rewards[int((BG_INTACT_DAYS-1)*TRIALS-100):int((BG_INTACT_DAYS-1)*TRIALS)], axis=0), np.mean(rewards[int((BG_INTACT_DAYS+1)*TRIALS-100):int((BG_INTACT_DAYS+1)*TRIALS)], axis=0)
     else:
         if N_SYLL == 1:
             if find_nos_peaks:
