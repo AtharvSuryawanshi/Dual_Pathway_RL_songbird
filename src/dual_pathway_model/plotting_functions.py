@@ -244,6 +244,7 @@ def plot_syrinx(obj, syll, axs, levels_, cmap, if_contour, contour_alpha=1, heat
     if not heatmap and colorbar:
         print("Warning: Colorbar is only plotted when heatmap is True. Setting colorbar to False.")
         colorbar = False
+    limit = obj.limit
     obj.syrinx_contours = []
     obj.syrinx_targets = []
     for j in range(obj.N_SYLL):
@@ -667,6 +668,47 @@ def plot_output(obj, syll, skip_size=1, window_size=10, plot_raw=True, plot_cort
     plt.xticks(range(0, N_DAILY_MOTIFS*(DAYS+1), 20*N_DAILY_MOTIFS), np.arange(40, DAYS+1+40, 20))
     ax1.legend()
     ax1.legend().get_frame().set_facecolor('lightgray')
+    plt.tight_layout()
+    # plt.savefig(figures_path+'motor_output'+'.png')
+    # plt.show()
+
+
+
+def plot_reward(obj, syll, skip_size=1, window_size=10, plot_raw=True, plot_alpha=1, figsize=None):
+    figure, ax2 = plt.subplots(1,1, figsize=figsize)
+
+    N_SYLL = obj.N_SYLL # To plot only one syllable at a time, set N_SYLL to 1 and plot the first syllable (syll=0)
+    N_DAILY_MOTIFS = obj.TRIALS
+    DAYS = obj.DAYS
+    sk = N_SYLL
+    LIMIT = 1.5
+
+    # Display x axis in days
+    x = np.arange(DAYS*N_DAILY_MOTIFS)[::skip_size]
+    # x = x/(N_DAILY_MOTIFS * N_SYLL)
+
+    if plot_raw:
+        ax2.scatter(x, obj.rewards[:,:,syll].reshape(DAYS*N_DAILY_MOTIFS)[::skip_size], s=1, color='grey', alpha=.2, marker='.', zorder=100)
+
+    ax2.plot(running_mean(obj.rewards[:,:,syll].reshape(DAYS*N_DAILY_MOTIFS), window_size), color='k', lw=1, alpha=plot_alpha, zorder=101)
+    
+    # Move y-axes to the right side
+    for ax in [ax2]:
+        ax.yaxis.tick_right()
+        ax.yaxis.set_label_position("right")
+
+    ax2.set_xlabel('DPH', fontsize=20)
+    # ax2.set_yticks([-LIMIT, LIMIT], [0, 0.2] )
+    ax2.set_ylim(0, 1)
+    ax2.tick_params(labelsize=15)
+    ax2.spines['top'].set_visible(False)
+    ax2.spines['left'].set_visible(False)
+    ax2.set_xlim(-N_DAILY_MOTIFS, N_DAILY_MOTIFS*DAYS)
+    # ax2.spines['bottom'].set_bounds(0, obj.n_days+obj.n_lesioned_days)
+    
+    ax2.set_ylabel("Performance\nmetric (R)", fontsize=15, labelpad=15, rotation=270)
+    ax2.set_yticks([0, 1])
+    plt.xticks(range(0, N_DAILY_MOTIFS*(DAYS+1), 20*N_DAILY_MOTIFS), np.arange(40, DAYS+1+40, 20))
     plt.tight_layout()
     # plt.savefig(figures_path+'motor_output'+'.png')
     # plt.show()

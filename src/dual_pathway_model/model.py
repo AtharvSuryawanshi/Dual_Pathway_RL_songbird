@@ -545,7 +545,7 @@ def build_and_run(seed, parameters, NN, lesion = False,
         if motor_variability:
             mean_motor_var = np.mean(np.std(env.actions[:,:,i,:], axis = 1),axis=1)
             print(mean_motor_var)
-            return np.mean(rewards[-100:], axis=0), np.mean(rewards[int((BG_INTACT_DAYS-1)*TRIALS-100):int((BG_INTACT_DAYS-1)*TRIALS)], axis=0), np.mean(rewards[int((BG_INTACT_DAYS+1)*TRIALS-100):int((BG_INTACT_DAYS+1)*TRIALS)], axis=0) ,mean_motor_var[int(BG_INTACT_DAYS) - 1], mean_motor_var[int(BG_INTACT_DAYS)], mean_motor_var[int(BG_INTACT_DAYS) + 1]
+            return np.mean(rewards[-100:], axis=0), np.mean(rewards[int((BG_INTACT_DAYS-1)*TRIALS-100):int((BG_INTACT_DAYS-1)*TRIALS)], axis=0), np.mean(rewards[int((BG_INTACT_DAYS)*TRIALS-100):int((BG_INTACT_DAYS)*TRIALS)], axis=0) ,mean_motor_var[int(BG_INTACT_DAYS) - 1], mean_motor_var[int(BG_INTACT_DAYS)], mean_motor_var[int(BG_INTACT_DAYS) + 1]
         else:
             return np.mean(rewards[-100:], axis=0), np.mean(rewards[int((BG_INTACT_DAYS-1)*TRIALS-100):int((BG_INTACT_DAYS-1)*TRIALS)], axis=0), np.mean(rewards[int((BG_INTACT_DAYS+1)*TRIALS-100):int((BG_INTACT_DAYS+1)*TRIALS)], axis=0)
     else:
