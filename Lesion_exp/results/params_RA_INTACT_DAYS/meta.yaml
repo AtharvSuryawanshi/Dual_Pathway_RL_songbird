@@ -1,4 +1,4 @@
-parameter: BG_INTACT_DAYS
+parameter: RA_INTACT_DAYS
 section: params
 seeds:
 - 18638

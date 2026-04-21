@@ -468,7 +468,6 @@ def plot_trajectory(obj, syll):
     if obj.LANDSCAPE == 0: # artificial landscape
         x_traj, y_traj = zip(*obj.actions[:,:, syll,:].reshape(-1, 2))
         limit = obj.limit
-        print(limit)
         x, y = np.linspace(-limit, limit, 50), np.linspace(-limit, limit, 50)
         X, Y = np.meshgrid(x, y)
         Z = obj.get_reward([X, Y], syll)
@@ -513,6 +512,7 @@ def build_and_run(seed, parameters, NN, lesion = False,
     TRIALS = parameters['params']['TRIALS']
     ANNEALING = parameters['params']['ANNEALING']
     BG_INTACT_DAYS = parameters['params']['BG_INTACT_DAYS']
+    RA_INTACT_DAYS = parameters['params']['RA_INTACT_DAYS']
     tqdm.write(f" Random seed is {seed}")
     np.random.seed(seed)
     if plot:
@@ -549,8 +549,10 @@ def build_and_run(seed, parameters, NN, lesion = False,
     if lesion: # terminal performance; before lesion; after lesion
         if motor_variability:
             mean_motor_var = np.mean(np.std(env.actions[:,:,i,:], axis = 1),axis=1)
-            print(mean_motor_var)
-            return np.mean(rewards[-100:], axis=0), np.mean(rewards[int((BG_INTACT_DAYS-1)*TRIALS-100):int((BG_INTACT_DAYS-1)*TRIALS)], axis=0), np.mean(rewards[int((BG_INTACT_DAYS)*TRIALS-100):int((BG_INTACT_DAYS)*TRIALS)], axis=0) ,mean_motor_var[int(BG_INTACT_DAYS) - 1], mean_motor_var[int(BG_INTACT_DAYS)], mean_motor_var[int(BG_INTACT_DAYS) + 1]
+            if BG_INTACT_DAYS <= DAYS - 2:
+                return np.mean(rewards[-100:], axis=0), np.mean(rewards[int((BG_INTACT_DAYS-1)*TRIALS-100):int((BG_INTACT_DAYS-1)*TRIALS)], axis=0), np.mean(rewards[int((BG_INTACT_DAYS)*TRIALS-100):int((BG_INTACT_DAYS)*TRIALS)], axis=0), mean_motor_var[int(BG_INTACT_DAYS) - 1], mean_motor_var[int(BG_INTACT_DAYS)], mean_motor_var[int(BG_INTACT_DAYS) + 1]
+            elif RA_INTACT_DAYS <= DAYS - 2:
+                return np.mean(rewards[-100:], axis=0), np.mean(rewards[int((RA_INTACT_DAYS-1)*TRIALS-100):int((RA_INTACT_DAYS-1)*TRIALS)], axis=0), np.mean(rewards[int((RA_INTACT_DAYS)*TRIALS-100):int((RA_INTACT_DAYS)*TRIALS)], axis=0), mean_motor_var[int(RA_INTACT_DAYS) - 1], mean_motor_var[int(RA_INTACT_DAYS)], mean_motor_var[int(RA_INTACT_DAYS) + 1]
         else:
             return np.mean(rewards[-100:], axis=0), np.mean(rewards[int((BG_INTACT_DAYS-1)*TRIALS-100):int((BG_INTACT_DAYS-1)*TRIALS)], axis=0), np.mean(rewards[int((BG_INTACT_DAYS+1)*TRIALS-100):int((BG_INTACT_DAYS+1)*TRIALS)], axis=0)
     else:
