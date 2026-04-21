@@ -3,6 +3,7 @@ params:
   TRIALS: 1000
   DAYS: 60 # 0 to 60
   BG_INTACT_DAYS: 61 # i.e. 
+  RA_INTACT_DAYS: 61 
   HEARING_INTACT_DAYS: 61
   N_SYLL: 4
 
@@ -10,6 +11,7 @@ params:
   ANNEALING: 1
   HEBBIAN_LEARNING: 1
   BG_influence: 1
+  RA_influence: 1
   WEIGHT_JUMP: 2
   JUMP_MID: 0.25
   JUMP_SLOPE: 30
