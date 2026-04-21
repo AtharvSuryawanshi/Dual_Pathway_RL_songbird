@@ -35,6 +35,7 @@ class NN:
         self.n_bg_clusters = int(parameters['params']['N_BG_CLUSTERS'])
         LOG_NORMAL = parameters['params']['LOG_NORMAL']
         self.bg_influence = parameters['params']['BG_influence']
+        self.ra_influence = parameters['params']['RA_influence']
         self.LANDSCAPE = int(parameters['params']['LANDSCAPE'])
         if self.LANDSCAPE == 0:
             self.limit = 1.5
@@ -79,7 +80,7 @@ class NN:
             BG_NOISE_size = BG_NOISE*np.exp(-trial*BG_NOISE_DECAY/60_000)
         self.bg = new_sigmoid(np.dot(hvc_array/num_ones, self.W_hvc_bg) + np.random.normal(0, BG_NOISE_size, self.bg_size), m = BG_SIG_SLOPE, a = BG_sig_MID)
         ra_noise = np.random.normal(0, RA_NOISE, self.ra_size)* HEBBIAN_LEARNING
-        self.ra = new_sigmoid(np.dot(self.bg, self.W_bg_ra/np.sum(self.W_bg_ra, axis=0)) * balance_factor * self.bg_influence + np.dot(hvc_array/num_ones, self.W_hvc_ra)* HEBBIAN_LEARNING + ra_noise, m = RA_SIG_SLOPE, a = RA_sig_MID)
+        self.ra = new_sigmoid(np.dot(self.bg, self.W_bg_ra/np.sum(self.W_bg_ra, axis=0)) * balance_factor * self.bg_influence + (np.dot(hvc_array/num_ones, self.W_hvc_ra)* HEBBIAN_LEARNING + ra_noise)*self.ra_influence, m = RA_SIG_SLOPE, a = RA_sig_MID)
         self.mc = self.limit*np.dot(self.ra, self.W_ra_mc/np.sum(self.W_ra_mc, axis=0)) # outputs to +-0.50
         self.ra_hvc = new_sigmoid(np.dot(hvc_array/num_ones, self.W_hvc_ra)* HEBBIAN_LEARNING + ra_noise, m = RA_SIG_SLOPE, a = RA_sig_MID)
         self.mc_ra_hvc = self.limit*np.dot(self.ra_hvc, self.W_ra_mc/np.sum(self.W_ra_mc, axis=0))
@@ -97,6 +98,7 @@ class Environment:
         # setting parameters
         self.DAYS = parameters['params']['DAYS']
         self.BG_INTACT_DAYS = parameters['params']['BG_INTACT_DAYS']
+        self.RA_INTACT_DAYS = parameters['params']['RA_INTACT_DAYS']
         self.HEARING_INTACT_DAYS = parameters['params']['HEARING_INTACT_DAYS']
         self.TRIALS = parameters['params']['TRIALS']
         self.N_SYLL = parameters['params']['N_SYLL']
@@ -198,6 +200,7 @@ class Environment:
         # modes 
         self.annealing = parameters['params']['ANNEALING']
         self.model.bg_influence = True
+        self.model.ra_influence = True
         # learning parameters
         self.learning_rate = parameters['params']['LEARNING_RATE_RL']
         learning_rate_hl = parameters['params']['LEARNING_RATE_HL']
@@ -218,6 +221,8 @@ class Environment:
             self.model.bg_influence = True
             if day >= self.BG_INTACT_DAYS:
                 self.model.bg_influence = False # BG lesion on the last day
+            if day >= self.RA_INTACT_DAYS:
+                self.model.ra_influence = False # RA lesion on the last day
             sum_RPE = np.zeros(self.N_SYLL)
             for iter in range(self.TRIALS):
                 for syll in range(self.N_SYLL):
@@ -245,7 +250,7 @@ class Environment:
                     dw_hvc_bg = self.learning_rate*(reward - reward_baseline)*input_hvc.reshape(self.hvc_size,1)*self.model.bg * self.model.bg_influence # RL update
                     # self.model.W_hvc_bg += dw_hvc_bg
                     # HL update
-                    dw_hvc_ra = learning_rate_hl*input_hvc.reshape(self.hvc_size,1)*self.model.ra*HEBBIAN_LEARNING # lr is supposed to be much smaller here
+                    dw_hvc_ra = learning_rate_hl*input_hvc.reshape(self.hvc_size,1)*self.model.ra*HEBBIAN_LEARNING* self.model.ra_influence # lr is supposed to be much smaller here
                     # self.model.W_hvc_ra += dw_hvc_ra
                     # bound weights between +-1
                     # np.clip(self.model.W_hvc_bg, -1, 1, out = self.model.W_hvc_bg)
