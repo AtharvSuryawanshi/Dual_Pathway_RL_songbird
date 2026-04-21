@@ -257,7 +257,7 @@ def plot_syrinx(obj, syll, axs, levels_, cmap, if_contour, contour_alpha=1, heat
     Z = obj.syrinx_contours[syll]
     target_pos = obj.syrinx_targets[syll]
     if if_contour:
-        axs.contour(Z.T, levels=levels_, extent=[-1, 1, -1, 1], colors='k', linewidths=1, alpha=contour_alpha)
+        axs.contour(Z.T, levels=levels_, extent=[-1, 1, -1, 1], colors='grey', linewidths=1, alpha=contour_alpha, zorder=2000)
     if heatmap:
         cs = axs.contourf(Z.T, cmap=cmap, extent=[-1, 1, -1, 1], vmin=0, vmax=1, levels=levels_, alpha=contour_alpha)
         if colorbar:
@@ -1131,6 +1131,7 @@ def save_figure(filename, format="pdf", save=False, dpi=150, rasterized=True, me
             for ax in fig.get_axes():
                 ax.set_rasterized(True)
         plt.savefig(os.path.join("Plots", f"{filename}.{format}"), dpi=dpi, bbox_inches="tight", metadata=metadata)
+        print("Figure saved as ",  os.path.join("Plots", f"{filename}.{format}"))
     
 
     
