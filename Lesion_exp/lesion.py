@@ -20,7 +20,7 @@ with open(LESION_CONFIG, "r") as f:
 
 print(f"Lesion parameters loaded from {LESION_CONFIG}")
 
-NOS_SEEDS = 3
+NOS_SEEDS = 100
 time_per_iter = 5.5
 state = 5
 np.random.seed(state)
