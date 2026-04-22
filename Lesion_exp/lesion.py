@@ -20,7 +20,7 @@ with open(LESION_CONFIG, "r") as f:
 
 print(f"Lesion parameters loaded from {LESION_CONFIG}")
 
-NOS_SEEDS = 100
+NOS_SEEDS = 3
 time_per_iter = 5.5
 state = 5
 np.random.seed(state)
@@ -67,11 +67,20 @@ for param_name, param_info in lesion_cfg.items():
             raise ValueError("N_SYLL must be 1 for robustness analysis.")
 
         for seed_idx, seed in enumerate(seeds):
-            terminal_perf, before_lesion, after_lesion, motor_var_terminal, motor_var_before, motor_var_after = build_and_run(seed, parameters, NN, lesion = True, motor_variability = True)
-            terminal_performance[seed_idx, val_idx, :] = terminal_perf, before_lesion, after_lesion
-            print(motor_var_terminal, motor_var_before, motor_var_after)
-            terminal_motor_var[seed_idx, val_idx, :] = motor_var_terminal, motor_var_before, motor_var_after
-            print(f"    Seed {seed} -> {terminal_perf}, {before_lesion}, {after_lesion}")
+            if param_name == "BG_INTACT_DAYS":
+                terminal_perf, before_lesion, after_lesion, motor_var_terminal, motor_var_before, motor_var_after = build_and_run(seed, parameters, NN, lesion_bg = True, motor_variability = True)
+                terminal_performance[seed_idx, val_idx, :] = terminal_perf, before_lesion, after_lesion
+                print(motor_var_terminal, motor_var_before, motor_var_after)
+                terminal_motor_var[seed_idx, val_idx, :] = motor_var_terminal, motor_var_before, motor_var_after
+                print(f"    Seed {seed} -> {terminal_perf}, {before_lesion}, {after_lesion}")
+            elif param_name == "RA_INTACT_DAYS":
+                terminal_perf, before_lesion, after_lesion, motor_var_terminal, motor_var_before, motor_var_after = build_and_run(seed, parameters, NN, lesion_ra = True, motor_variability = True)
+                terminal_performance[seed_idx, val_idx, :] = terminal_perf, before_lesion, after_lesion
+                print(motor_var_terminal, motor_var_before, motor_var_after)
+                terminal_motor_var[seed_idx, val_idx, :] = motor_var_terminal, motor_var_before, motor_var_after
+                print(f"    Seed {seed} -> {terminal_perf}, {before_lesion}, {after_lesion}")
+            else:
+                raise ValueError(f"Unknown lesion parameter {param_name}")
 
     results_dir = HERE / "results" / f"{section}_{param_name}"
     results_dir.mkdir(parents=True, exist_ok=True)
