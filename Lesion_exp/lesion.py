@@ -68,17 +68,17 @@ for param_name, param_info in lesion_cfg.items():
 
         for seed_idx, seed in enumerate(seeds):
             if param_name == "BG_INTACT_DAYS":
-                terminal_perf, before_lesion, after_lesion, motor_var_terminal, motor_var_before, motor_var_after = build_and_run(seed, parameters, NN, lesion_bg = True, motor_variability = True)
-                terminal_performance[seed_idx, val_idx, :] = terminal_perf, before_lesion, after_lesion
-                print(motor_var_terminal, motor_var_before, motor_var_after)
-                terminal_motor_var[seed_idx, val_idx, :] = motor_var_terminal, motor_var_before, motor_var_after
-                print(f"    Seed {seed} -> {terminal_perf}, {before_lesion}, {after_lesion}")
+                output_dict = build_and_run(seed, parameters, NN, lesion_bg = True, motor_variability = True)
+                terminal_performance[seed_idx, val_idx, :] = output_dict['rewards']['before_lesion'], output_dict['rewards']['after_lesion'], output_dict['rewards']['final']
+                terminal_motor_var[seed_idx, val_idx, :] = output_dict['motor_var']['final'], output_dict['motor_var']['before_lesion'], output_dict['motor_var']['after_lesion']
+                print(f"Seed {seed} -> Motor Variability: {output_dict['motor_var']['before_lesion']:<.3f}, {output_dict['motor_var']['after_lesion']:<.3f}, {output_dict['motor_var']['final']:<.3f}")
+                print(f"Seed {seed} -> Rewards: {output_dict['rewards']['before_lesion']:<.3f}, {output_dict['rewards']['after_lesion']:<.3f}, {output_dict['rewards']['final']:<.3f}")
             elif param_name == "RA_INTACT_DAYS":
-                terminal_perf, before_lesion, after_lesion, motor_var_terminal, motor_var_before, motor_var_after = build_and_run(seed, parameters, NN, lesion_ra = True, motor_variability = True)
-                terminal_performance[seed_idx, val_idx, :] = terminal_perf, before_lesion, after_lesion
-                print(motor_var_terminal, motor_var_before, motor_var_after)
-                terminal_motor_var[seed_idx, val_idx, :] = motor_var_terminal, motor_var_before, motor_var_after
-                print(f"    Seed {seed} -> {terminal_perf}, {before_lesion}, {after_lesion}")
+                output_dict = build_and_run(seed, parameters, NN, lesion_ra = True, motor_variability = True)
+                terminal_performance[seed_idx, val_idx, :] = output_dict['rewards']['before_lesion'], output_dict['rewards']['after_lesion'], output_dict['rewards']['final']
+                terminal_motor_var[seed_idx, val_idx, :] = output_dict['motor_var']['final'], output_dict['motor_var']['before_lesion'], output_dict['motor_var']['after_lesion']
+                print(f"Seed {seed} -> Motor Variability: {output_dict['motor_var']['before_lesion']:<.3f}, {output_dict['motor_var']['after_lesion']:<.3f}, {output_dict['motor_var']['final']:<.3f}")
+                print(f"Seed {seed} -> Rewards: {output_dict['rewards']['before_lesion']:<.3f}, {output_dict['rewards']['after_lesion']:<.3f}, {output_dict['rewards']['final']:<.3f}")
             else:
                 raise ValueError(f"Unknown lesion parameter {param_name}")
 

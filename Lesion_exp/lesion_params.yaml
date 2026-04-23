@@ -2,10 +2,9 @@
 # Each parameter has a section and a list of values to test
 # The sections correspond to the configuration structure in the main model
 # Comment or uncomment parameters as needed for robustness testing
-# BG_INTACT_DAYS:
-#   section: params
-#   # values: [5, 10, 20, 30, 35, 40, 50, 60, 65] # uuhhh idk man! 
-#   values: [0, 30, 60] #
+BG_INTACT_DAYS:
+  section: params
+  values: [0, 30, 60] #
 
 RA_INTACT_DAYS:
   section: params

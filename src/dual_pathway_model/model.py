@@ -548,17 +548,33 @@ def build_and_run(seed, parameters, NN, lesion_bg = False,
         outputs.append(np.mean(rewards[-100:], axis=0))
         # return rewards after lesion and before lesion 
     if lesion_bg: # terminal performance; before lesion; after lesion
+        dict = {}
+        dict['rewards'] = {}
+        rewards_idx_lesion = int((BG_INTACT_DAYS)*TRIALS)
+        dict['rewards']['before_lesion'] = np.mean(rewards[rewards_idx_lesion-100:rewards_idx_lesion], axis=0)
+        dict['rewards']['after_lesion'] = np.mean(rewards[rewards_idx_lesion:rewards_idx_lesion+100], axis=0)
+        dict['rewards']['final'] = np.mean(rewards[-100:], axis=0)
         if motor_variability:
+            dict['motor_var'] = {}
             mean_motor_var = np.mean(np.std(env.actions[:,:,i,:], axis = 1),axis=1)
-            return np.mean(rewards[-100:], axis=0), np.mean(rewards[int((BG_INTACT_DAYS-1)*TRIALS-100):int((BG_INTACT_DAYS-1)*TRIALS)], axis=0), np.mean(rewards[int((BG_INTACT_DAYS)*TRIALS-100):int((BG_INTACT_DAYS)*TRIALS)], axis=0) ,mean_motor_var[int(BG_INTACT_DAYS) - 1], mean_motor_var[int(BG_INTACT_DAYS)], mean_motor_var[int(BG_INTACT_DAYS) + 1]
-        else:
-            return np.mean(rewards[-100:], axis=0), np.mean(rewards[int((BG_INTACT_DAYS-1)*TRIALS-100):int((BG_INTACT_DAYS-1)*TRIALS)], axis=0), np.mean(rewards[int((BG_INTACT_DAYS+1)*TRIALS-100):int((BG_INTACT_DAYS+1)*TRIALS)], axis=0)
+            dict['motor_var']['before_lesion'] = np.nan if int(BG_INTACT_DAYS) - 1 < 0 else mean_motor_var[int(BG_INTACT_DAYS) - 1]
+            dict['motor_var']['after_lesion'] = np.nan if int(BG_INTACT_DAYS) < 0 else mean_motor_var[int(BG_INTACT_DAYS)]
+            dict['motor_var']['final'] = mean_motor_var[-1]
+        return dict
     if lesion_ra:
+        dict = {}
+        dict['rewards'] = {}
+        rewards_idx_lesion = int((RA_INTACT_DAYS)*TRIALS)
+        dict['rewards']['before_lesion'] = np.mean(rewards[rewards_idx_lesion-100:rewards_idx_lesion], axis=0)
+        dict['rewards']['after_lesion'] = np.mean(rewards[rewards_idx_lesion:rewards_idx_lesion+100], axis=0)
+        dict['rewards']['final'] = np.mean(rewards[-100:], axis=0)
         if motor_variability:
+            dict['motor_var'] = {}
             mean_motor_var = np.mean(np.std(env.actions[:,:,i,:], axis = 1),axis=1)
-            return np.mean(rewards[-100:], axis=0), np.mean(rewards[int((RA_INTACT_DAYS-1)*TRIALS-100):int((RA_INTACT_DAYS-1)*TRIALS)], axis=0), np.mean(rewards[int((RA_INTACT_DAYS)*TRIALS-100):int((RA_INTACT_DAYS)*TRIALS)], axis=0) ,mean_motor_var[int(RA_INTACT_DAYS) - 1], mean_motor_var[int(RA_INTACT_DAYS)], mean_motor_var[int(RA_INTACT_DAYS) + 1]
-        else:
-            return np.mean(rewards[-100:], axis=0), np.mean(rewards[int((RA_INTACT_DAYS-1)*TRIALS-100):int((RA_INTACT_DAYS-1)*TRIALS)], axis=0), np.mean(rewards[int((RA_INTACT_DAYS+1)*TRIALS-100):int((RA_INTACT_DAYS+1)*TRIALS)], axis=0)
+            dict['motor_var']['before_lesion'] = np.nan if int(RA_INTACT_DAYS) - 1 < 0 else mean_motor_var[int(RA_INTACT_DAYS) - 1]
+            dict['motor_var']['after_lesion'] = np.nan if int(RA_INTACT_DAYS) < 0 else mean_motor_var[int(RA_INTACT_DAYS)]
+            dict['motor_var']['final'] = mean_motor_var[-1]
+        return dict
     else:
         if N_SYLL == 1:
             if find_nos_peaks:
