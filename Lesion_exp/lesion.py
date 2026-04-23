@@ -20,7 +20,7 @@ with open(LESION_CONFIG, "r") as f:
 
 print(f"Lesion parameters loaded from {LESION_CONFIG}")
 
-NOS_SEEDS = 100
+NOS_SEEDS = 3
 time_per_iter = 5.5
 state = 5
 np.random.seed(state)
@@ -70,13 +70,13 @@ for param_name, param_info in lesion_cfg.items():
             if param_name == "BG_INTACT_DAYS":
                 output_dict = build_and_run(seed, parameters, NN, lesion_bg = True, motor_variability = True)
                 terminal_performance[seed_idx, val_idx, :] = output_dict['rewards']['before_lesion'], output_dict['rewards']['after_lesion'], output_dict['rewards']['final']
-                terminal_motor_var[seed_idx, val_idx, :] = output_dict['motor_var']['final'], output_dict['motor_var']['before_lesion'], output_dict['motor_var']['after_lesion']
+                terminal_motor_var[seed_idx, val_idx, :] = output_dict['motor_var']['before_lesion'], output_dict['motor_var']['after_lesion'], output_dict['motor_var']['final']
                 print(f"Seed {seed} -> Motor Variability: {output_dict['motor_var']['before_lesion']:<.3f}, {output_dict['motor_var']['after_lesion']:<.3f}, {output_dict['motor_var']['final']:<.3f}")
                 print(f"Seed {seed} -> Rewards: {output_dict['rewards']['before_lesion']:<.3f}, {output_dict['rewards']['after_lesion']:<.3f}, {output_dict['rewards']['final']:<.3f}")
             elif param_name == "RA_INTACT_DAYS":
                 output_dict = build_and_run(seed, parameters, NN, lesion_ra = True, motor_variability = True)
                 terminal_performance[seed_idx, val_idx, :] = output_dict['rewards']['before_lesion'], output_dict['rewards']['after_lesion'], output_dict['rewards']['final']
-                terminal_motor_var[seed_idx, val_idx, :] = output_dict['motor_var']['final'], output_dict['motor_var']['before_lesion'], output_dict['motor_var']['after_lesion']
+                terminal_motor_var[seed_idx, val_idx, :] = output_dict['motor_var']['before_lesion'], output_dict['motor_var']['after_lesion'], output_dict['motor_var']['final']
                 print(f"Seed {seed} -> Motor Variability: {output_dict['motor_var']['before_lesion']:<.3f}, {output_dict['motor_var']['after_lesion']:<.3f}, {output_dict['motor_var']['final']:<.3f}")
                 print(f"Seed {seed} -> Rewards: {output_dict['rewards']['before_lesion']:<.3f}, {output_dict['rewards']['after_lesion']:<.3f}, {output_dict['rewards']['final']:<.3f}")
             else:
