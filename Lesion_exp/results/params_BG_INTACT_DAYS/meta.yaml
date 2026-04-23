@@ -1,11 +1,18 @@
 parameter: BG_INTACT_DAYS
 section: params
 seeds:
+- 5520
 - 18638
 - 20463
+- 33508
+- 33800
+- 34750
+- 35227
 - 35683
+- 59465
+- 81639
 shape:
-- 3
+- 10
 - 3
 - 3
 values:
