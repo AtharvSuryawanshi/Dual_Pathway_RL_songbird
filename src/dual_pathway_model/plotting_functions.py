@@ -475,6 +475,8 @@ def plot_scatter_traj(obj, syll, day_i, day_f, every_nth_point,
     # plt.savefig(figures_path+'contour_syll'+str(syll+1)+'.png')
     # plt.show()
 
+    return axs
+
 
 
 def plot_landscape_only(obj, syll, contour_levels=12, contour_alpha=1, plot_colors = plot_colors, if_contour=False, heatmap=False, colorbar=False):
