@@ -552,7 +552,7 @@ def plot_landscape_only(obj, syll, contour_levels=12, contour_alpha=1, plot_colo
 
 
 ###### PLOT MOTOR OUTPUTS ######
-def plot_output(obj, syll, skip_size=1, window_size=10, plot_raw=True, plot_cortex=False, plot_BG=False, plot_alpha=1, figsize=None):
+def plot_output(obj, syll, skip_size=1, window_size=10, plot_raw=True, plot_cortex=False, plot_BG=False, plot_alpha=1, figsize=None, plot_x_spine=True):
     figure, (ax1, ax2) = plt.subplots(2,1, figsize=figsize)
 
     N_SYLL = obj.N_SYLL # To plot only one syllable at a time, set N_SYLL to 1 and plot the first syllable (syll=0)
@@ -647,14 +647,23 @@ def plot_output(obj, syll, skip_size=1, window_size=10, plot_raw=True, plot_cort
         ax.yaxis.tick_right()
         ax.yaxis.set_label_position("right")
 
-    ax2.set_xlabel('DPH', fontsize=20)
     ax2.set_yticks([-LIMIT, LIMIT], [0, 0.2] )
     ax2.set_ylim(-LIMIT, LIMIT)
     ax2.tick_params(labelsize=15)
     ax2.spines['top'].set_visible(False)
     ax2.spines['left'].set_visible(False)
-    ax2.set_xlim(-N_DAILY_MOTIFS, N_DAILY_MOTIFS*DAYS)
-    # ax2.spines['bottom'].set_bounds(0, obj.n_days+obj.n_lesioned_days)
+    # ax2.spines['bottom'].set_visible(plot_x_spine)
+    # ax2.set_xlim(-N_DAILY_MOTIFS, N_DAILY_MOTIFS*DAYS)
+    # ax2.spines['bottom'].set_bounds(-N_DAILY_MOTIFS, N_DAILY_MOTIFS*DAYS)
+    # if plot_x_spine=='False': ax2.set_xticks([])
+    ax2.set_xlim(0, N_DAILY_MOTIFS*(DAYS))
+    if plot_x_spine == True:
+        ax2.set_xticks(range(0, N_DAILY_MOTIFS*(DAYS+1), 20*N_DAILY_MOTIFS))
+        ax2.set_xticklabels(np.arange(40, DAYS+1+40, 20))
+        ax2.set_xlabel('DPH', fontsize=20)
+    else:
+        ax2.spines['bottom'].set_visible(False)
+        ax2.set_xticks([])
     
     if obj.LANDSCAPE == 1:
         ax2.set_ylabel(r'$P$', fontsize=20, labelpad=-10, rotation=270)
@@ -667,7 +676,7 @@ def plot_output(obj, syll, skip_size=1, window_size=10, plot_raw=True, plot_cort
         ax1.set_yticks([-LIMIT, 0, LIMIT], [-1, 0, 1])
         ax2.set_yticks([-LIMIT, 0, LIMIT], [-1, 0, 1])
     plt.legend(frameon=False, loc='center right', fontsize=12, bbox_to_anchor=(1.03,1))
-    plt.xticks(range(0, N_DAILY_MOTIFS*(DAYS+1), 20*N_DAILY_MOTIFS), np.arange(40, DAYS+1+40, 20))
+        
     ax1.legend()
     ax1.legend().get_frame().set_facecolor('lightgray')
     plt.tight_layout()
@@ -705,8 +714,9 @@ def plot_reward(obj, syll, skip_size=1, window_size=10, plot_raw=True, plot_alph
     ax2.tick_params(labelsize=15)
     ax2.spines['top'].set_visible(False)
     ax2.spines['left'].set_visible(False)
-    ax2.set_xlim(-N_DAILY_MOTIFS, N_DAILY_MOTIFS*DAYS)
+    # ax2.set_xlim(-N_DAILY_MOTIFS, N_DAILY_MOTIFS*DAYS)
     # ax2.spines['bottom'].set_bounds(0, obj.n_days+obj.n_lesioned_days)
+    ax2.set_xlim(0, N_DAILY_MOTIFS*(DAYS))
     
     ax2.set_ylabel("Performance\nmetric (R)", fontsize=15, labelpad=15, rotation=270)
     ax2.set_yticks([0, 1])
