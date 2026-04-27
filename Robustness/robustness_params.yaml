@@ -20,7 +20,7 @@ LEARNING_RATE_HL:
 
 N_DISTRACTORS:
   section: params
-  values: [5, 10, 20, 40]
+  values: [5, 20, 80]
 
 # ANNEALING:
 #   section: params
