@@ -2,21 +2,21 @@
 # Each parameter has a section and a list of values to test
 # The sections correspond to the configuration structure in the main model
 # Comment or uncomment parameters as needed for robustness testing
-BG_NOISE:
-  section: params
-  values: [0.05, 0.1, 0.15, 0.2, 0.3, 0.4, 0.8]
+# BG_NOISE:
+#   section: params
+#   values: [0.05, 0.1, 0.15, 0.2, 0.3, 0.4, 0.8]
 
-RA_NOISE:
-  section: params
-  values: [0.0, 0.1, 0.2, 0.4,  0.8]
+# RA_NOISE:
+#   section: params
+#   values: [0.0, 0.1, 0.2, 0.4,  0.8]
 
-LEARNING_RATE_RL:
-  section: params
-  values: [0.1, 0.2, 0.3, 0.4, 0.5]
+# LEARNING_RATE_RL:
+#   section: params
+#   values: [0.1, 0.2, 0.3, 0.4, 0.5]
 
-LEARNING_RATE_HL:
-  section: params
-  values: [0, 1e-5, 2e-5, 10e-5, 100e-5, 1000e-4]
+# LEARNING_RATE_HL:
+#   section: params
+#   values: [0, 1e-5, 2e-5, 10e-5, 100e-5, 1000e-4]
 
 N_DISTRACTORS:
   section: params
@@ -30,14 +30,14 @@ N_DISTRACTORS:
 #   section: params
 #   values: [0.1, 0.2, 0.3, 0.4, 0.5]
 
-REWARD_WINDOW:
-  section: params
-  values: [2, 5, 10, 15, 20, 40]
+# REWARD_WINDOW:
+#   section: params
+#   values: [2, 5, 10, 15, 20, 40]
 
-JUMP_FACTOR:
-  section: params
-  values: [1, 2, 3, 4, 5]
+# JUMP_FACTOR:
+#   section: params
+#   values: [1, 2, 3, 4, 5]
 
-JUMP_MID:
-  section: params
-  values: [0.1, 0.2, 0.25, 0.3, 0.4, 0.5]
+# JUMP_MID:
+#   section: params
+#   values: [0.1, 0.2, 0.25, 0.3, 0.4, 0.5]
