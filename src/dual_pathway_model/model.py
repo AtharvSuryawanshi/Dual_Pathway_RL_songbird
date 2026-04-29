@@ -501,12 +501,15 @@ def plot_trajectory(obj, syll):
     plt.tight_layout()
     plt.show()
             
-def build_and_run(seed, parameters, NN, lesion_bg = False,
+def build_and_run(seed, parameters, NN, 
+                  terminal_performance = True,
+                  lesion_bg = False,
                   lesion_ra = False,
                   output_reward= False, 
                   output_action= False,
                   plot = False,
                   find_nos_peaks = False,
+                  motor_displacement = False,
                   motor_variability = False):
     N_SYLL = parameters['params']['N_SYLL']
     DAYS = parameters['params']['DAYS']
@@ -528,14 +531,24 @@ def build_and_run(seed, parameters, NN, lesion_bg = False,
             Z = env.get_reward([X, Y], syll)
             rows, cols, heights = find_peaks_2d(Z, threshold=0.0)
             peaks.append(len(rows)) # only care about number of peaks, not their locations
+            
     output = {}
+    if terminal_performance and motor_displacement:
+        rewards = env.rewards[:,:,:].reshape(env.DAYS*env.TRIALS, env.N_SYLL)
+        output['terminal_performance_reward'] = np.mean(rewards[-100:], axis=0)
+        # output['rewards'] = rewards_output
+        motor_displacement_output = env.actions[1:,0,:,:] - env.actions[:-1,-1,:,:] # displacement from the end of one day to the beginning of the next day   
+        output['motor_displacement'] = motor_displacement_output
+        return output
     if output_reward:
-        rewards_output = env.rewards[:,:,:] #.reshape(env.DAYS*env.TRIALS, env.N_SYLL)
+        rewards_output = env.rewards[:,:,:]
         output['rewards'] = rewards_output
     if output_action:
-        actions_output = env.actions[:,:,:,:] #.reshape(env.DAYS*env.TRIALS, env.N_SYLL, env.mc_size)
+        actions_output = env.actions[:,:,:,:]
         output['actions'] = actions_output
-    if output_reward or output_action:
+    if output_reward and output_action:
+        output['rewards'] = env.rewards[:,:,:]
+        output['actions'] = env.actions[:,:,:,:] 
         return output
     outputs = []
     for i in range(N_SYLL):

@@ -1,0 +1,11 @@
+motor_displacement_shape:
+- 2
+- 4
+- 1
+- 2
+parameter: stat_test_2
+seeds:
+- 18638
+- 35683
+shape:
+- 2
