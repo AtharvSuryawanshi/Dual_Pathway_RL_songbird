@@ -20,17 +20,17 @@ HERE = Path(__file__).resolve().parent
 
 # print(f"Robustness parameters loaded from {ROBUSTNESS_CONFIG}")
 
-NOS_SEEDS = 10
+NOS_SEEDS = 100
 time_per_iter = 6.5
 state = 5
 np.random.seed(state)
 seeds = np.random.randint(0, 100000, NOS_SEEDS)
 seeds.sort()
 
-# # TIME ESTIMATE
-# total_iterations = sum(len(param_info["values"]) for param_info in robustness_cfg.values()) * NOS_SEEDS
-# total_time_hours = (total_iterations * time_per_iter) / 3600
-# print(f"Estimated total time for robustness analysis: {total_time_hours:.2f} hours")
+# TIME ESTIMATE
+total_iterations = NOS_SEEDS
+total_time_hours = (total_iterations * time_per_iter) / 3600
+print(f"Estimated total time for robustness analysis: {total_time_hours:.2f} hours")
 
 parameters = update_params(
     params_base,
