@@ -20,7 +20,7 @@ HERE = Path(__file__).resolve().parent
 
 # print(f"Robustness parameters loaded from {ROBUSTNESS_CONFIG}")
 
-NOS_SEEDS = 2
+NOS_SEEDS = 10
 time_per_iter = 6.5
 state = 5
 np.random.seed(state)
@@ -37,7 +37,7 @@ parameters = update_params(
     **{
         # f"{section}.{param_name}": val,
         "params.N_SYLL": 1,
-        "params.DAYS": 5, # for quick testing
+        # "params.DAYS": 5, # for quick testing
     }
 )
 
@@ -77,12 +77,12 @@ for seed_idx, seed in enumerate(seeds):
     # print(output.keys())
     # print(output)
     perf = output['terminal_performance_reward'][0]
-    print(perf.shape)
+    # print(perf.shape)
     motor_displacement = output['motor_displacement']
     terminal_performance[seed_idx] = perf
     motor_displacement_array[seed_idx] = motor_displacement
-    print(f"Seed {seed} -> Terminal performance: {perf}")
-    print(f"Motor displacement shape: {motor_displacement}")
+    # print(f"Seed {seed} -> Terminal performance: {perf}")
+    # print(f"Motor displacement shape: {motor_displacement}")
     # print(f"Motor displacement shape: {motor_displacement.shape}")
     # if param_name == "N_DISTRACTORS":
     #     nos_peaks_output[seed_idx, val_idx] = nos_peaks
