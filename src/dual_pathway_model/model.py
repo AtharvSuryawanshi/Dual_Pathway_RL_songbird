@@ -510,7 +510,9 @@ def build_and_run(seed, parameters, NN,
                   plot = False,
                   find_nos_peaks = False,
                   motor_displacement = False,
-                  motor_variability = False):
+                  motor_variability = False,
+                  reward_displacement = False
+                  ):
     N_SYLL = parameters['params']['N_SYLL']
     DAYS = parameters['params']['DAYS']
     TRIALS = parameters['params']['TRIALS']
@@ -533,12 +535,15 @@ def build_and_run(seed, parameters, NN,
             peaks.append(len(rows)) # only care about number of peaks, not their locations
             
     output = {}
-    if terminal_performance and motor_displacement:
+    if terminal_performance:
         rewards = env.rewards[:,:,:].reshape(env.DAYS*env.TRIALS, env.N_SYLL)
         output['terminal_performance_reward'] = np.mean(rewards[-100:], axis=0)
-        # output['rewards'] = rewards_output
+    if motor_displacement:
         motor_displacement_output = env.actions[1:,0,:,:] - env.actions[:-1,-1,:,:] # displacement from the end of one day to the beginning of the next day   
         output['motor_displacement'] = motor_displacement_output
+    if reward_displacement:
+        reward_displacement_output = env.rewards[1:,0,:] - env.rewards[:-1,-1,:] # displacement from the end of one day to the beginning of the next day
+        output['reward_displacement'] = reward_displacement_output
         return output
     if output_reward:
         rewards_output = env.rewards[:,:,:]

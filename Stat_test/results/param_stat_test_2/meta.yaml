@@ -4,6 +4,10 @@ motor_displacement_shape:
 - 1
 - 2
 parameter: stat_test_2
+reward_displacement_shape:
+- 100
+- 59
+- 1
 seeds:
 - 44
 - 144
