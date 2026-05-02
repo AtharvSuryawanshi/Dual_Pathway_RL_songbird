@@ -153,7 +153,7 @@ def plot_results_violin(returns, params,
     ax1.spines['left'].set_bounds(0, 1)
     ax1.set_yticks([0, 0.7, 1])
     ax1.set_yticklabels(['0', '0.7', '1'], fontsize=font_params['yticks']['fontsize'])
-    ax1.set_ylabel('Terminal\nPerformance', fontsize=font_params['ylabel']['fontsize'], rotation=font_params['ylabel']['rotation'], labelpad=font_params['ylabel']['labelpad'])
+    ax1.set_ylabel('Terminal performance', fontsize=font_params['ylabel']['fontsize'], rotation=font_params['ylabel']['rotation'], labelpad=font_params['ylabel']['labelpad'])
 
     if big_xlabel is not None:
         # ax1.set_xlabel(big_xlabel, fontsize=font_params['xlabel']['fontsize'], labelpad=font_params['xlabel']['labelpad'])
