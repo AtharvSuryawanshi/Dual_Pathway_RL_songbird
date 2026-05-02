@@ -27,10 +27,23 @@ color_motor = pathway_colors['motor']
 def plot_results_violin(returns, params, 
                         plot_colors = plot_colors, 
                         big_xlabel=None, xticklabels=None,
-                        xticklabel_rotation=0,
                         print_success_rate=True,
                         height_ratio=[2.4, 5],
-                        print_stats=False
+                        print_stats=False,
+                        fig_size=None,
+                        plot_legend=False,
+                        font_params={
+                            'xlabel': {'fontsize': 16, 'labelpad': 10},
+                            'xticklabels': {'fontsize': 12, 'rotation': 0},
+                            'yticks': {'fontsize': 12},
+                            'ylabel': {'fontsize': 16, 'rotation': 90, 'labelpad': 10},
+                            'bar_xlabel': {'fontsize': 16, 'labelpad': 10},
+                            'bar_xticklabels': {'fontsize': 12, 'rotation': 0},
+                            'bar_yticks': {'fontsize': 12},
+                            'bar_ylabel': {'fontsize': 16, 'rotation': 90, 'labelpad': 10},
+                            'bar_height': {'fontsize': 10},
+                            'legend': {'fontsize': 12}
+                        }
                         ):
     returns = np.asarray(returns)
     sorted_params = list(params)
@@ -65,10 +78,16 @@ def plot_results_violin(returns, params,
             print(f"Median above threshold for {sorted_params[i]}: {median_vals_above_threshold[i]*100:.2f} [{iqr_vals_above_threshold[i][0]*100:.2f} - {iqr_vals_above_threshold[i][1]*100:.2f}]")
 
     # --- Figure & layout ---
-    fig = plt.figure(
-        figsize=(1.5 * n_values + 2, 7),
-        constrained_layout=True
-    )
+    if fig_size is not None:
+        fig = plt.figure(
+            figsize=fig_size,
+            constrained_layout=True
+        )   
+    else:
+        fig = plt.figure(
+            figsize=(1.5 * n_values + 2, 7),
+            constrained_layout=True
+        )
     gs = fig.add_gridspec(
         2, 2,
         width_ratios=[6, 2],
@@ -108,7 +127,7 @@ def plot_results_violin(returns, params,
     strip = sns.stripplot(
         x=labels_list,
         y=data,
-        size=3,
+        size=1,
         color=plot_colors['violin_plot_colors']['color_strip'],
         alpha=0.9,
         jitter=0.1,
@@ -126,31 +145,34 @@ def plot_results_violin(returns, params,
         color='dimgray',
         linestyle='--',
         linewidth=2,
-        label='Success threshold'
+        label='Success\nthreshold'
     )
 
 
     ax1.set_ylim(0, 1.015)
     ax1.spines['left'].set_bounds(0, 1)
     ax1.set_yticks([0, 0.7, 1])
-    ax1.set_yticklabels(['0', '0.7', '1'], fontsize=12)
-    ax1.set_ylabel('Terminal Performance', fontsize=16)
+    ax1.set_yticklabels(['0', '0.7', '1'], fontsize=font_params['yticks']['fontsize'])
+    ax1.set_ylabel('Terminal\nPerformance', fontsize=font_params['ylabel']['fontsize'], rotation=font_params['ylabel']['rotation'], labelpad=font_params['ylabel']['labelpad'])
 
     if big_xlabel is not None:
-        ax1.set_xlabel(big_xlabel, fontsize=16, labelpad=10)
+        # ax1.set_xlabel(big_xlabel, fontsize=font_params['xlabel']['fontsize'], labelpad=font_params['xlabel']['labelpad'])
+        fig.text(0.78, 0.1, big_xlabel, ha='center', va='bottom', fontsize=font_params['xlabel']['fontsize'])
 
     # 🔒 FIX: ticks BEFORE labels
     ax1.set_xlim(-.45, n_values-.4)
     ax1.set_xticks(np.arange(n_values)-.05)
     ax1.set_xticklabels(
         xticklabels if xticklabels is not None else sorted_params,
-        fontsize=12
+        fontsize=font_params['xticklabels']['fontsize'],
+        rotation=font_params['xticklabels']['rotation']
     )
     ax1.tick_params(axis='x', which='major', length=0)
 
     ax1.spines['top'].set_visible(False)
     ax1.spines['right'].set_visible(False)
-    ax1.legend(loc='lower right', fontsize=11, facecolor='lightgrey')
+    if plot_legend:         
+        ax1.legend(loc='lower right', fontsize=font_params['legend']['fontsize'], facecolor='lightgrey')
 
     # =======================
     # Success-rate bar plot
@@ -167,12 +189,13 @@ def plot_results_violin(returns, params,
         for i, val in enumerate(above_threshold2 * 100):
             ax2.text(
                 i, val + 5, int(val), # f"{val:.1f}",
-                ha='center', va='bottom', fontsize=10, rotation=0
+                ha='center', va='bottom', fontsize=font_params['bar_height']['fontsize'], rotation=0
             )
 
     ax2.set_ylim(0, 100)
-    ax2.set_ylabel('Success Rate (%)', fontsize=12, rotation=270)
+    ax2.set_ylabel('Success\nRate (%)', fontsize=font_params['bar_ylabel']['fontsize'], rotation=font_params['bar_ylabel']['rotation'], labelpad=font_params['bar_ylabel']['labelpad'])
     ax2.set_yticks([0, 100])
+    ax2.tick_params(axis='y', which='major', labelsize=font_params['bar_yticks']['fontsize'])
     ax2.yaxis.tick_right()
     ax2.yaxis.set_label_position('right')
 
@@ -180,13 +203,13 @@ def plot_results_violin(returns, params,
     ax2.set_xticks(range(n_values))
     ax2.tick_params(axis='x', which='major', length=0)
 
-    ha = 'right' if xticklabel_rotation != 0 else 'center'
+    ha = 'right' if font_params['bar_xticklabels']['rotation'] != 0 else 'center'
     ax2.set_xticklabels(
         xticklabels if xticklabels is not None else sorted_params,
-        rotation=xticklabel_rotation,
+        rotation=font_params['bar_xticklabels']['rotation'],
         ha=ha,
         va='top',
-        fontsize=10,
+        fontsize=font_params['bar_xticklabels']['fontsize'],
         rotation_mode="anchor"
     )
 
@@ -327,7 +350,7 @@ def plot_results_violin_fig(returns, params,
     ax1.spines['top'].set_visible(False)
     ax1.spines['right'].set_visible(False)
     if plot_legend:
-        ax1.legend(loc='lower right', fontsize=7, facecolor='lightgrey', bbox_to_anchor=(1.95, 0), prop={'size': 6})
+        ax1.legend(loc='lower left', fontsize=7, facecolor='lightgrey', bbox_to_anchor=(1.05,0), prop={'size': font_params['legend']['fontsize']})
 
     # =======================
     # Success-rate bar plot
