@@ -445,8 +445,8 @@ def plot_artificial(obj, syll, axs, levels_, cmap, if_contour, contour_alpha=1, 
     axs.set_yticks([limit], [1])
     axs.set_xlim([-limit, limit])
     axs.set_ylim([-limit, limit])
-    axs.set_ylabel(r'$X$', fontsize=6, labelpad=-2)
-    axs.set_xlabel(r'$Y$', fontsize=6, labelpad=-2)
+    axs.set_ylabel(r'$X$', fontsize=8, labelpad=-2)
+    axs.set_xlabel(r'$Y$', fontsize=8, labelpad=-2)
     axs.tick_params(labelsize=0, length=0)
 
 def plot_syrinx(obj, syll, axs, levels_, cmap, if_contour, contour_alpha=1, heatmap=False, colorbar=True):
@@ -580,6 +580,7 @@ def plot_scatter_traj(obj, syll, day_i, day_f, every_nth_point,
                                  plot_smooth_traj=plot_smooth_traj,
                                  running_smooth=smooth_window,
                                  traj_alpha=traj_alpha,
+                                 traj_lw=.5,
                                  day_i=day_i, day_f=day_f, every_nth_point=every_nth_point,
                                  TRIALS=obj.TRIALS,
                                  label='motor output',
