@@ -470,7 +470,8 @@ def plot_scatter_traj_helper(axs, x_traj, y_traj,
                              color_traj, alt_scatter_color, scatter_alpha=0.5,
                              plot_smooth_traj=False, running_smooth=20, traj_alpha=.8,
                              day_i=0, day_f=60, every_nth_point=2, TRIALS=1000,
-                             label='motor output', daycolor=False, daycolorbar=False):
+                             label='motor output', daycolor=False, daycolorbar=False,
+                             scatter_size=1, traj_lw=0.5):
 
 
     if scatter_alpha > 0: 
@@ -479,7 +480,7 @@ def plot_scatter_traj_helper(axs, x_traj, y_traj,
 
             cs = axs.scatter(
                 x_traj[day_i * TRIALS: day_f * TRIALS][::every_nth_point],
-                y_traj[day_i * TRIALS: day_f * TRIALS][::every_nth_point], 1, c = c_day[::every_nth_point], cmap='plasma', label=label, edgecolors='none', alpha=scatter_alpha, marker='.', zorder=5
+                y_traj[day_i * TRIALS: day_f * TRIALS][::every_nth_point], scatter_size, c = c_day[::every_nth_point], cmap='plasma', label=label, edgecolors='none', alpha=scatter_alpha, marker='.', zorder=5
             )
             
             if daycolorbar:
@@ -494,7 +495,7 @@ def plot_scatter_traj_helper(axs, x_traj, y_traj,
             scatter_color = alt_scatter_color if plot_smooth_traj else color_traj
             axs.scatter(
                 x_traj[day_i * TRIALS: day_f * TRIALS][::every_nth_point],
-                y_traj[day_i * TRIALS: day_f * TRIALS][::every_nth_point], 1, color = scatter_color, label=label, edgecolors='none', alpha=scatter_alpha, marker='.', zorder=5
+                y_traj[day_i * TRIALS: day_f * TRIALS][::every_nth_point], scatter_size, color = scatter_color, label=label, edgecolors='none', alpha=scatter_alpha, marker='.', zorder=5
             )
 
 
@@ -522,7 +523,7 @@ def plot_scatter_traj_helper(axs, x_traj, y_traj,
 
         V = [np.stack([x, y]) for x, y in zip(X, Y)]
         V = np.array(V).reshape((1, len(X), 2))
-        lines = LineCollection(V, color=color_traj, alpha=traj_alpha, linewidth=.5, zorder=100)
+        lines = LineCollection(V, color=color_traj, alpha=traj_alpha, linewidth=traj_lw, zorder=100)
         axs.add_collection(lines)
 
 
