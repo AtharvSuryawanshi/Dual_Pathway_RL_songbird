@@ -446,9 +446,9 @@ def plot_artificial(obj, syll, axs, levels_, cmap, if_contour, contour_alpha=1, 
     axs.set_yticks([limit], [1])
     axs.set_xlim([-limit, limit])
     axs.set_ylim([-limit, limit])
-    axs.set_ylabel(r'$X$', fontsize=8, labelpad=-2)
-    axs.set_xlabel(r'$Y$', fontsize=8, labelpad=-2)
-    axs.tick_params(labelsize=0, length=0)
+    axs.set_ylabel(r'$X$', fontsize=6, labelpad=-2)
+    axs.set_xlabel(r'$Y$', fontsize=6, labelpad=-5)
+    axs.tick_params(labelsize=4, length=0)
 
 def plot_syrinx(obj, syll, axs, levels_, cmap, if_contour, contour_alpha=1, heatmap=False, colorbar=True):
     if obj.N_SYLL > 4:
@@ -484,9 +484,9 @@ def plot_syrinx(obj, syll, axs, levels_, cmap, if_contour, contour_alpha=1, heat
     axs.set_yticks([1], [0.2])
     axs.set_xlim([-limit, limit])
     axs.set_ylim([-limit, limit])
-    axs.set_ylabel('Pressure (P)', fontsize=6, labelpad=-10)
-    axs.set_xlabel('Tension (T)', fontsize=6, labelpad=-5)
-    axs.tick_params(labelsize=6, length=0)
+    axs.set_ylabel('P', fontsize=6, labelpad=-5)
+    axs.set_xlabel('T', fontsize=6, labelpad=-5)
+    axs.tick_params(labelsize=4, length=0)
     # axs.scatter(target_pos[1], target_pos[0], s=100, c='green', marker='x', label='Target')
 
 
@@ -672,8 +672,8 @@ def plot_scatter_traj(obj, syll, day_i, day_f, every_nth_point,
 
 
 
-def plot_landscape_only(obj, syll, contour_levels=12, contour_alpha=1, plot_colors = plot_colors, if_contour=False, heatmap=False, colorbar=False):
-    fig, axs = plt.subplots(figsize=(12, 10))
+def plot_landscape_only(obj, syll, contour_levels=12, contour_alpha=1, plot_colors = plot_colors, if_contour=False, heatmap=False, colorbar=False, figsize=(10,10)):
+    fig, axs = plt.subplots(figsize=figsize)
     cmap = 'Greys' # LinearSegmentedColormap.from_list('change_this', ['white', 'white']) # 'Greys' color_contour_bckg #'Purples' #LinearSegmentedColormap.from_list('white_to_black', ['white', 'rebeccapurple'])
     levels_ = contour_levels
     ##### Artificial Landscapes #####
