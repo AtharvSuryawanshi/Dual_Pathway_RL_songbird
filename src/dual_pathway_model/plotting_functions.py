@@ -32,6 +32,7 @@ def plot_results_violin(returns, params,
                         print_stats=False,
                         fig_size=None,
                         plot_legend=False,
+                        width_ratio=[6,2],
                         font_params={
                             'xlabel': {'fontsize': 16, 'labelpad': 10},
                             'xticklabels': {'fontsize': 12, 'rotation': 0},
@@ -90,7 +91,7 @@ def plot_results_violin(returns, params,
         )
     gs = fig.add_gridspec(
         2, 2,
-        width_ratios=[6, 2],
+        width_ratios=width_ratio,
         height_ratios=height_ratio,
         wspace=0.15,
         hspace=0
@@ -129,7 +130,7 @@ def plot_results_violin(returns, params,
         y=data,
         size=1,
         color=plot_colors['violin_plot_colors']['color_strip'],
-        alpha=0.9,
+        alpha=0.8,
         jitter=0.1,
         ax=ax1
     )
@@ -156,8 +157,8 @@ def plot_results_violin(returns, params,
     ax1.set_ylabel('Terminal performance', fontsize=font_params['ylabel']['fontsize'], rotation=font_params['ylabel']['rotation'], labelpad=font_params['ylabel']['labelpad'])
 
     if big_xlabel is not None:
-        # ax1.set_xlabel(big_xlabel, fontsize=font_params['xlabel']['fontsize'], labelpad=font_params['xlabel']['labelpad'])
-        fig.text(0.78, 0.1, big_xlabel, ha='center', va='bottom', fontsize=font_params['xlabel']['fontsize'])
+        ax1.set_xlabel(big_xlabel, fontsize=font_params['xlabel']['fontsize'], labelpad=font_params['xlabel']['labelpad'])
+        # fig.text(0.78, 0.1, big_xlabel, ha='center', va='bottom', fontsize=font_params['xlabel']['fontsize'])
 
     # 🔒 FIX: ticks BEFORE labels
     ax1.set_xlim(-.45, n_values-.4)
@@ -172,7 +173,7 @@ def plot_results_violin(returns, params,
     ax1.spines['top'].set_visible(False)
     ax1.spines['right'].set_visible(False)
     if plot_legend:         
-        ax1.legend(loc='lower right', fontsize=font_params['legend']['fontsize'], facecolor='lightgrey')
+        ax1.legend(loc='lower right', bbox_to_anchor=(2.5, 0), fontsize=font_params['legend']['fontsize'], facecolor='lightgrey')
 
     # =======================
     # Success-rate bar plot
@@ -468,24 +469,24 @@ def plot_syrinx(obj, syll, axs, levels_, cmap, if_contour, contour_alpha=1, heat
     Z = obj.syrinx_contours[syll]
     target_pos = obj.syrinx_targets[syll]
     if if_contour:
-        axs.contour(Z.T, levels=levels_, extent=[-1, 1, -1, 1], colors='grey', linewidths=1, alpha=contour_alpha, zorder=2000)
+        axs.contour(Z.T, levels=levels_, extent=[-1, 1, -1, 1], colors='grey', linewidths=.5, alpha=contour_alpha, zorder=2000)
     if heatmap:
         cs = axs.contourf(Z.T, cmap=cmap, extent=[-1, 1, -1, 1], vmin=0, vmax=1, levels=levels_, alpha=contour_alpha)
         if colorbar:
             # Create colorbar on the inset axis (cax)
-            cax = axs.inset_axes((1.05, 0, 0.08, 1.0))
+            cax = axs.inset_axes((1.1, 0, 0.08, 1.0))
             cbar = axs.figure.colorbar(cs, cax=cax)
-            cbar.set_label('Performance Metric (R)', fontsize=30, rotation=270, labelpad=20)
-            cbar.ax.tick_params(labelsize=20)
+            cbar.set_label('Performance\nmetric (R)', fontsize=5, rotation=270, labelpad=5)
+            cbar.ax.tick_params(labelsize=6)
             cbar.ax.set_yticks([0, 1])
     axs.set_aspect('equal', adjustable='box')
     axs.set_xticks([-1, 1], [0, 1])
     axs.set_yticks([1], [0.2])
     axs.set_xlim([-limit, limit])
     axs.set_ylim([-limit, limit])
-    axs.set_ylabel(r'$Pressure (P)$', fontsize=30)
-    axs.set_xlabel(r'$Tension (T)$', fontsize=30)
-    axs.tick_params(labelsize=20, length=0)
+    axs.set_ylabel('Pressure (P)', fontsize=6, labelpad=-10)
+    axs.set_xlabel('Tension (T)', fontsize=6, labelpad=-5)
+    axs.tick_params(labelsize=6, length=0)
     # axs.scatter(target_pos[1], target_pos[0], s=100, c='green', marker='x', label='Target')
 
 
@@ -493,7 +494,7 @@ def plot_scatter_traj_helper(axs, x_traj, y_traj,
                              color_traj, alt_scatter_color, scatter_alpha=0.5,
                              plot_smooth_traj=False, running_smooth=20, traj_alpha=.8,
                              day_i=0, day_f=60, every_nth_point=2, TRIALS=1000,
-                             label='motor output', daycolor=False, daycolorbar=False,
+                             label='Motor output', daycolor=False, daycolorbar=False,
                              scatter_size=1, traj_lw=0.5):
 
 
@@ -518,23 +519,23 @@ def plot_scatter_traj_helper(axs, x_traj, y_traj,
             scatter_color = alt_scatter_color if plot_smooth_traj else color_traj
             axs.scatter(
                 x_traj[day_i * TRIALS: day_f * TRIALS][::every_nth_point],
-                y_traj[day_i * TRIALS: day_f * TRIALS][::every_nth_point], scatter_size, color = scatter_color, label=label, edgecolors='none', alpha=scatter_alpha, marker='.', zorder=5
+                y_traj[day_i * TRIALS: day_f * TRIALS][::every_nth_point], scatter_size, color = scatter_color, edgecolors='none', alpha=scatter_alpha, marker='.', zorder=5
             )
 
 
     if not daycolor:
         axs.scatter(x_traj[0], y_traj[0],
-                    s=15, c=color_traj,
+                    s=7, c=color_traj,
                     marker='s', zorder=500)#, label='Starting Point')
         axs.scatter(x_traj[-1], y_traj[-1],
-                    s=15, c='white',
+                    s=7, c='white',
                     marker='X', zorder=500)#, label='Ending Point')
         axs.scatter(x_traj[0], y_traj[0],
                     s=3, c='white',
-                    marker='s', zorder=600, label=f'Initial {label}')
+                    marker='s', zorder=600, label=f'Initial position')
         axs.scatter(x_traj[-1], y_traj[-1],
-                    s=10, c=color_traj,
-                    marker='x', zorder=600, label=f'Final {label}')
+                    s=3, c=color_traj,
+                    marker='x', zorder=600, label=f'Final position')
 
     
     if plot_smooth_traj:
@@ -583,7 +584,7 @@ def plot_scatter_traj(obj, syll, day_i, day_f, every_nth_point,
                                  traj_lw=.5,
                                  day_i=day_i, day_f=day_f, every_nth_point=every_nth_point,
                                  TRIALS=obj.TRIALS,
-                                 label='motor output',
+                                 label='Motor output',
                                  daycolor=daycolor,
                                  daycolorbar=daycolorbar)
 
@@ -658,7 +659,7 @@ def plot_scatter_traj(obj, syll, day_i, day_f, every_nth_point,
     # axs.tick_params(labelsize=20)
 
     if legend:
-        axs.legend(facecolor='lightgrey', bbox_to_anchor=(.8, 1.15), loc='upper left')#, edgecolor='black', framealpha=0.8)
+        axs.legend(facecolor='lightgrey', bbox_to_anchor=(0.5, -0.15), loc='upper center', ncol=3, markerscale=4)#, edgecolor='black', framealpha=0.8)
 
 
 
@@ -745,7 +746,7 @@ def plot_landscape_only(obj, syll, contour_levels=12, contour_alpha=1, plot_colo
 
 ###### PLOT MOTOR OUTPUTS ######
 def plot_output(obj, syll, skip_size=1, window_size=10, plot_raw=True, plot_cortex=False, plot_BG=False, plot_alpha=1, figsize=None, plot_x_spine=True, plot_legend=False):
-    figure, (ax1, ax2) = plt.subplots(2,1, figsize=figsize)
+    figure, (ax1, ax2) = plt.subplots(2,1, figsize=figsize, constrained_layout=True)    
 
     N_SYLL = obj.N_SYLL # To plot only one syllable at a time, set N_SYLL to 1 and plot the first syllable (syll=0)
     N_DAILY_MOTIFS = obj.TRIALS
@@ -816,8 +817,8 @@ def plot_output(obj, syll, skip_size=1, window_size=10, plot_raw=True, plot_cort
     #     ax2.plot(obj.centers[syll + 1, 1]*np.ones(N_DAILY_MOTIFS*DAYS),  color='red', linestyle='--', linewidth=1, label = 'Target')
     # elif N_SYLL == 1:
     
-    ax1.plot(obj.centers[syll, obj.LANDSCAPE*1]*np.ones(N_DAILY_MOTIFS*DAYS),  color='grey', linestyle='--', linewidth=1, label = 'Global optimum', zorder=500)
-    ax2.plot(obj.centers[syll, 1-obj.LANDSCAPE]*np.ones(N_DAILY_MOTIFS*DAYS),  color='grey', linestyle='--', linewidth=1, zorder=500)
+    ax1.plot(obj.centers[syll, obj.LANDSCAPE*1]*np.ones(N_DAILY_MOTIFS*DAYS),  color='grey', linestyle='--', linewidth=.5, label = 'Global optimum', zorder=500)
+    ax2.plot(obj.centers[syll, 1-obj.LANDSCAPE]*np.ones(N_DAILY_MOTIFS*DAYS),  color='grey', linestyle='--', linewidth=.5, zorder=500)
 
 
     # Axis beauty
@@ -858,8 +859,8 @@ def plot_output(obj, syll, skip_size=1, window_size=10, plot_raw=True, plot_cort
         ax2.set_xticks([])
     
     if obj.LANDSCAPE == 1:
-        ax2.set_ylabel(r'$P$', fontsize=20, labelpad=-10, rotation=270)
-        ax1.set_ylabel(r'$T$', fontsize=20, rotation=270)
+        ax2.set_ylabel(r'$P$', fontsize=7, labelpad=-2, rotation=270)
+        ax1.set_ylabel(r'$T$', fontsize=7, rotation=270)
         ax1.set_yticks([-LIMIT, LIMIT], [0, 1] )
         ax2.set_yticks([-LIMIT, LIMIT], [0, 0.2] )
     else:
@@ -900,17 +901,17 @@ def plot_reward(obj, syll, skip_size=1, window_size=10, plot_raw=True, plot_alph
         ax.yaxis.tick_right()
         ax.yaxis.set_label_position("right")
 
-    ax2.set_xlabel('DPH', fontsize=20)
+    ax2.set_xlabel('DPH', fontsize=8, labelpad=-5)
     # ax2.set_yticks([-LIMIT, LIMIT], [0, 0.2] )
     ax2.set_ylim(0, 1)
-    ax2.tick_params(labelsize=15)
+    ax2.tick_params(labelsize=7)
     ax2.spines['top'].set_visible(False)
     ax2.spines['left'].set_visible(False)
     # ax2.set_xlim(-N_DAILY_MOTIFS, N_DAILY_MOTIFS*DAYS)
     # ax2.spines['bottom'].set_bounds(0, obj.n_days+obj.n_lesioned_days)
     ax2.set_xlim(0, N_DAILY_MOTIFS*(DAYS))
     
-    ax2.set_ylabel("Performance\nmetric (R)", fontsize=15, labelpad=15, rotation=270)
+    ax2.set_ylabel("R", fontsize=7, labelpad=0, rotation=270)
     ax2.set_yticks([0, 1])
     plt.xticks(range(0, N_DAILY_MOTIFS*(DAYS+1), 20*N_DAILY_MOTIFS), np.arange(40, DAYS+1+40, 20))
     plt.tight_layout()
