@@ -9,7 +9,7 @@ Clone the repository:
 
 ```bash
 # Clone the repo 
-git clone -b library https://github.com/AtharvSuryawanshi/Dual_Pathway_RL_songbird.git
+git clone https://github.com/AtharvSuryawanshi/Dual_Pathway_RL_songbird.git
 
 # Create and activate environment
 conda create --name dual_pathway_env python=3.12
@@ -17,7 +17,7 @@ conda activate dual_pathway_env
 
 # Install dependencies
 cd Dual_Pathway_RL_songbird
-pip install -r requirements.txt
+pip install -r requirements.yml
 
 # Install dual_pathway_model package
 pip install -e .
@@ -40,7 +40,7 @@ Dual_Pathway_RL_songbird/
 |   `-- robustness.py           # Main simulation script
 |-- Figures/
 |   `-- Figure_x.ipynb
-`-- requirements.txt          # package requirements
+`-- requirements.yml          # package requirements
 ```
 
 
