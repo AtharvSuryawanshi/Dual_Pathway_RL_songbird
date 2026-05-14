@@ -1,0 +1,8 @@
+ipykernel
+numpy
+scipy
+matplotlib
+seaborn
+pandas
+pyyaml
+tqdm
