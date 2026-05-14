@@ -1,6 +1,6 @@
-# Dual Pathway Architecture for Song Learning in Zebra Finches
+# Dual pathway architecture in songbirds enables robust sensorimotor learning
 
-A reinforcement learning model implementing dual-pathway architecture for birdsong learning, inspired by the songbird brain. Based on research from https://doi.org/10.64898/2026.05.07.723469
+A reinforcement learning model implementing dual-pathway architecture for birdsong learning, inspired by the songbird brain. Codes for the research at https://doi.org/10.64898/2026.05.07.723469
 
 ## 🛠 Getting Started
 
