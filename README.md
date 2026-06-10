@@ -74,17 +74,7 @@ Dual_Pathway_RL_songbird/
 └── README.md                                # This file
 ```
 
-## Project Overview
 
-This repository implements a **dual-pathway reinforcement learning architecture** for modeling birdsong learning in zebra finches. The model mimics the neural pathways involved in song learning, combining direct (sensorimotor) and indirect (basal ganglia-like) learning pathways.
-
-### Key Features
-
-- **Dual-pathway architecture**: Models direct and indirect learning pathways
-- **Reinforcement learning**: Uses reward modulated Hebbian algorithm on a dual pathway architecture.
-- **Robustness analysis**: Comprehensive testing across parameter ranges
-- **Lesion experiments**: Studies impact of "brain lesioning" during learning
-- **Benchmark comparisons**: Compares performance to other models
 
 ## Directory Descriptions
 
