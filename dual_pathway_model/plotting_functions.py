@@ -65,8 +65,13 @@ def plot_results_violin(returns, params,
         mean_vals[i] = np.mean(col)
         median_vals[i] = np.median(col)
         iqr_vals[i] = np.percentile(col, [25, 75])
-        median_vals_above_threshold[i] = np.median(col[col > 0.7])
-        iqr_vals_above_threshold[i] = np.percentile(col[col > 0.7], [25, 75])
+        above = col[col > 0.7]
+        if above.size:
+            median_vals_above_threshold[i] = np.median(above)
+            iqr_vals_above_threshold[i] = np.percentile(above, [25, 75])
+        else:
+            median_vals_above_threshold[i] = np.nan
+            iqr_vals_above_threshold[i] = np.nan
         data.extend(col)
         labels_list.extend([sorted_params[i]] * len(col))
     if print_stats:
@@ -76,7 +81,10 @@ def plot_results_violin(returns, params,
         for i in range(n_values):
             print(f"Median for {sorted_params[i]}: {median_vals[i]*100:.2f} [{iqr_vals[i][0]*100:.2f} - {iqr_vals[i][1]*100:.2f}]")
         for i in range(n_values):
-            print(f"Median above threshold for {sorted_params[i]}: {median_vals_above_threshold[i]*100:.2f} [{iqr_vals_above_threshold[i][0]*100:.2f} - {iqr_vals_above_threshold[i][1]*100:.2f}]")
+            if np.isnan(median_vals_above_threshold[i]):
+                print(f"Median above threshold for {sorted_params[i]}: n/a (no values > 0.7)")
+            else:
+                print(f"Median above threshold for {sorted_params[i]}: {median_vals_above_threshold[i]*100:.2f} [{iqr_vals_above_threshold[i][0]*100:.2f} - {iqr_vals_above_threshold[i][1]*100:.2f}]")
 
     # --- Figure & layout ---
     if fig_size is not None:

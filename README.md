@@ -13,7 +13,7 @@ Set up your environment with these simple steps:
 git clone https://github.com/AtharvSuryawanshi/Dual_Pathway_RL_songbird.git
 
 # Create and activate environment
-conda create --name dual_pathway_env python=3.12
+conda create --name dual_pathway_env python=3.12 --yes
 conda activate dual_pathway_env
 
 # Install dependencies and package

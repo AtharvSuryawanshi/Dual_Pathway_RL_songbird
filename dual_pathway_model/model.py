@@ -214,6 +214,7 @@ class Environment:
         JUMP_SLOPE = parameters['params']['JUMP_SLOPE']
         JUMP_FACTOR = parameters['params']['JUMP_FACTOR']
         HARD_BOUND = parameters['params']['HARD_BOUND']
+        JUMP_NTIMES_PER_TRIAL = parameters['params']['JUMP_NTIMES_PER_TRIAL']
 
         # each day, 1000 trial, n_syll syllables
         for day in tqdm(range(self.DAYS)):
@@ -225,6 +226,9 @@ class Environment:
                 self.model.ra_influence = False # RA lesion on the last day
             sum_RPE = np.zeros(self.N_SYLL)
             for iter in range(self.TRIALS):
+                global_trial = day * self.TRIALS + iter
+                if global_trial % JUMP_NTIMES_PER_TRIAL == 0:
+                    hvc_bg_start = self.model.W_hvc_bg.copy()
                 for syll in range(self.N_SYLL):
                     # input from HVC is determined by the syllable
                     input_hvc = np.zeros(self.hvc_size)
@@ -274,81 +278,80 @@ class Environment:
                     if self.RECORD_WEIGHTS:
                         self.hvc_ra_array_all[day, iter, syll, :] = self.model.W_hvc_ra[syll,:]
                         self.hvc_bg_array_all[day, iter, syll, :] = self.model.W_hvc_bg[syll,:]
-                    if iter == 0:
-                        hvc_bg_start = self.model.W_hvc_bg.copy()
-                    if iter == self.TRIALS-1:
-                        hvc_bg_end = self.model.W_hvc_bg.copy()
                     self.ra_out[day, iter, syll] = ra[0]
                     self.ra_all[day, iter, syll, :] = ra # np.concatenate([ra[:4], ra[-4:]])
                     self.bg_all[day, iter, syll, :] = bg
                     self.dist_from_target[day, iter, syll] = np.linalg.norm(action - self.centers[syll, :]) 
 
-            # Annealing
-            if self.annealing:
-                for syll in range(self.N_SYLL):
-                    if WEIGHT_JUMP == 0:
-                        ''' input daily sum, output scaling factor for potentiation'''
-                        # OLD WAY OF DOING THINGS
-                        # calculating potentiation 
-                        d = dw_day[syll]*100 # scaling up to be comparable
-                        annealing_mid_final = ANNEALING_MID*np.exp(-ANNEALING_MID_DECAY*day/60)
-                        p = 1 * sigmoid(1*d, m = annealing_mid_final, a = ANNEALING_MID)
-                        potentiation_factor = np.zeros((self.hvc_size))
-                        potentiation_factor[syll] = 1-p 
-                        # implementing night weight changes
-                        night_noise = np.random.uniform(-1, 1, self.bg_size) # make it lognormal
-                        dw_night = self.learning_rate*potentiation_factor.reshape(self.hvc_size,1)*night_noise*3*self.model.bg_influence
-                        self.model.W_hvc_bg += dw_night
-                        self.model.W_hvc_bg = (self.model.W_hvc_bg + 1) % 2 -1 # bound between -1 and 1 in cyclical manner
-                        # storing values
-                        self.pot_array[day, syll] = 1-p
-                        self.dw_day_array[day, syll] = d
-                    elif WEIGHT_JUMP == 1:
-                        # NEW WAY OF DOING THINGS
-                        self.dw_day_array[day, syll] = self.RPE_SUM[day, iter, syll]
-                        # an alternate way of jumping! 
-                        rpe_sum_end_of_day = self.RPE_SUM[day, iter, syll]
-                        potentiation_factor = 1 - sigmoid(rpe_sum_end_of_day, m = JUMP_SLOPE, a = JUMP_MID)
-                        night_noise = np.random.uniform(-1, 1, (self.bg_size))   
-                        dw_night = self.learning_rate*potentiation_factor*night_noise*100*self.model.bg_influence
-                        W1 = self.model.W_hvc_bg[syll, :] + dw_night
-                        W2 = self.model.W_hvc_bg[syll, :] - dw_night
-                        indices_in_bound = (W1 <= 1) & (W1 >= -1)
-                        self.model.W_hvc_bg[syll, :] = W1*indices_in_bound + W2*(~indices_in_bound)
-                        x = self.model.W_hvc_bg
-                        self.model.W_hvc_bg[syll, :] += dw_night
-                        self.model.W_hvc_bg = (self.model.W_hvc_bg + 1) % 2 -1 # bound between -1 and 1 in cyclical manner
-                        diff = np.sum(np.abs(self.model.W_hvc_bg - x))
-                        self.jump_size_array[day, syll] = diff
-                        self.pot_array[day, syll] = potentiation_factor
-                    elif WEIGHT_JUMP == 2: # something Arthur told
-                        # print(hvc_bg_end[:, :].shape)
-                        abs_diff = np.abs(hvc_bg_end - hvc_bg_start)   # type: ignore
-                        # abs_diff = np.abs(self.hvc_bg_array_all[day, -1, syll, :] - self.hvc_bg_array_all[day, 0, syll, :])
-                        potentiation_factor = 1 - sigmoid(abs_diff, m = JUMP_SLOPE, a = JUMP_MID)
-                        night_noise = np.random.uniform(-1, 1, (self.bg_size))
-                        dw_night = self.learning_rate*JUMP_FACTOR*potentiation_factor[syll, :]*night_noise*self.model.bg_influence
-                        # print(np.max(dw_night), np.min(dw_night))
-                        W1 = self.model.W_hvc_bg[syll, :] + dw_night 
-                        W2 = self.model.W_hvc_bg[syll, :] - dw_night
-                        indices_in_bound = (W1 <= 1) & (W1 >= -1)
-                        self.pot_array[day, syll] = potentiation_factor[syll, 0]
-                        self.potentiation_factor_all[day, syll, :, :] = potentiation_factor
-                        self.model.W_hvc_bg[syll, :] = W1*indices_in_bound + W2*(~indices_in_bound)
-                        self.model.W_hvc_bg[syll, :] = np.clip(self.model.W_hvc_bg[syll, :], -1, 1)
-                        # if syll == 0 and day == 5:
-                        #     fig = plt.figure()
-                        #     plt.plot(abs_diff[0], alpha = .5)
-                        #     plt.plot(potentiation_factor[syll, :], alpha = .5)
-                        #     plt.plot(dw_night, alpha = .5)
-                        #     plt.legend(['abs diff', 'potentiation factor', 'dw night'])
-                        #     plt.ylim(-1,1)
-                        #     plt.show()
-                        #     fig = plt.figure()
-                        #     plt.scatter(abs_diff, potentiation_factor)
-                        #     plt.xlim(0,1)
-                        #     plt.ylim(0,1)
-                        #     plt.show()
+                # JUMP_NTIMES_PER_TRIAL=1000 → end of each day; 500 → twice a day; 2000 → every 2 days
+                if self.annealing and (global_trial + 1) % JUMP_NTIMES_PER_TRIAL == 0:
+                    hvc_bg_end = self.model.W_hvc_bg.copy()
+                    # print(f"Jumping at trial {global_trial} day {day}, iter {iter}, JUMP_NTIMES_PER_TRIAL {JUMP_NTIMES_PER_TRIAL}")
+                    for syll in range(self.N_SYLL):
+                        if WEIGHT_JUMP == 0:
+                            ''' input daily sum, output scaling factor for potentiation'''
+                            # OLD WAY OF DOING THINGS
+                            # calculating potentiation 
+                            d = dw_day[syll]*100 # scaling up to be comparable
+                            annealing_mid_final = ANNEALING_MID*np.exp(-ANNEALING_MID_DECAY*day/60)
+                            p = 1 * sigmoid(1*d, m = annealing_mid_final, a = ANNEALING_MID)
+                            potentiation_factor = np.zeros((self.hvc_size))
+                            potentiation_factor[syll] = 1-p 
+                            # implementing night weight changes
+                            night_noise = np.random.uniform(-1, 1, self.bg_size) # make it lognormal
+                            dw_night = self.learning_rate*potentiation_factor.reshape(self.hvc_size,1)*night_noise*3*self.model.bg_influence
+                            self.model.W_hvc_bg += dw_night
+                            self.model.W_hvc_bg = (self.model.W_hvc_bg + 1) % 2 -1 # bound between -1 and 1 in cyclical manner
+                            # storing values
+                            self.pot_array[day, syll] = 1-p
+                            self.dw_day_array[day, syll] = d
+                        elif WEIGHT_JUMP == 1:
+                            # NEW WAY OF DOING THINGS
+                            self.dw_day_array[day, syll] = self.RPE_SUM[day, iter, syll]
+                            # an alternate way of jumping! 
+                            rpe_sum_end_of_day = self.RPE_SUM[day, iter, syll]
+                            potentiation_factor = 1 - sigmoid(rpe_sum_end_of_day, m = JUMP_SLOPE, a = JUMP_MID)
+                            night_noise = np.random.uniform(-1, 1, (self.bg_size))   
+                            dw_night = self.learning_rate*potentiation_factor*night_noise*100*self.model.bg_influence
+                            W1 = self.model.W_hvc_bg[syll, :] + dw_night
+                            W2 = self.model.W_hvc_bg[syll, :] - dw_night
+                            indices_in_bound = (W1 <= 1) & (W1 >= -1)
+                            self.model.W_hvc_bg[syll, :] = W1*indices_in_bound + W2*(~indices_in_bound)
+                            x = self.model.W_hvc_bg
+                            self.model.W_hvc_bg[syll, :] += dw_night
+                            self.model.W_hvc_bg = (self.model.W_hvc_bg + 1) % 2 -1 # bound between -1 and 1 in cyclical manner
+                            diff = np.sum(np.abs(self.model.W_hvc_bg - x))
+                            self.jump_size_array[day, syll] = diff
+                            self.pot_array[day, syll] = potentiation_factor
+                        elif WEIGHT_JUMP == 2: # something Arthur told
+                            # print(hvc_bg_end[:, :].shape)
+                            abs_diff = np.abs(hvc_bg_end - hvc_bg_start)   # type: ignore
+                            # abs_diff = np.abs(self.hvc_bg_array_all[day, -1, syll, :] - self.hvc_bg_array_all[day, 0, syll, :])
+                            potentiation_factor = 1 - sigmoid(abs_diff, m = JUMP_SLOPE, a = JUMP_MID)
+                            night_noise = np.random.uniform(-1, 1, (self.bg_size))
+                            dw_night = self.learning_rate*JUMP_FACTOR*potentiation_factor[syll, :]*night_noise*self.model.bg_influence
+                            # print(np.max(dw_night), np.min(dw_night))
+                            W1 = self.model.W_hvc_bg[syll, :] + dw_night 
+                            W2 = self.model.W_hvc_bg[syll, :] - dw_night
+                            indices_in_bound = (W1 <= 1) & (W1 >= -1)
+                            self.pot_array[day, syll] = potentiation_factor[syll, 0]
+                            self.potentiation_factor_all[day, syll, :, :] = potentiation_factor
+                            self.model.W_hvc_bg[syll, :] = W1*indices_in_bound + W2*(~indices_in_bound)
+                            self.model.W_hvc_bg[syll, :] = np.clip(self.model.W_hvc_bg[syll, :], -1, 1)
+                            # if syll == 0 and day == 5:
+                            #     fig = plt.figure()
+                            #     plt.plot(abs_diff[0], alpha = .5)
+                            #     plt.plot(potentiation_factor[syll, :], alpha = .5)
+                            #     plt.plot(dw_night, alpha = .5)
+                            #     plt.legend(['abs diff', 'potentiation factor', 'dw night'])
+                            #     plt.ylim(-1,1)
+                            #     plt.show()
+                            #     fig = plt.figure()
+                            #     plt.scatter(abs_diff, potentiation_factor)
+                            #     plt.xlim(0,1)
+                            #     plt.ylim(0,1)
+                            #     plt.show()
+                    dw_day[:] = 0
 
 
 
