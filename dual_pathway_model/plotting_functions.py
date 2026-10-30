@@ -359,7 +359,7 @@ def plot_results_violin_fig(returns, params,
     ax1.spines['top'].set_visible(False)
     ax1.spines['right'].set_visible(False)
     if plot_legend:
-        ax1.legend(loc='lower left', fontsize=7, facecolor='lightgrey', bbox_to_anchor=(1.05,0), prop={'size': font_params['legend']['fontsize']})
+        ax1.legend(loc='lower left', fontsize=7, facecolor='lightgrey', bbox_to_anchor=(1.05,0))
 
     # =======================
     # Success-rate bar plot
@@ -439,9 +439,9 @@ def plot_artificial(obj, syll, axs, levels_, cmap, if_contour, contour_alpha=1, 
     Z = obj.get_reward([X, Y], syll)
     # Z should be normalised for the simulations - max 1 min 0
     if if_contour:
-        axs.contour(X, Y, Z, levels=levels_, extent=[-limit, limit, -limit, limit], aspect='equal', colors='k', linewidths=1, alpha=contour_alpha)
+        axs.contour(X, Y, Z, levels=levels_, extent=[-limit, limit, -limit, limit], colors='k', linewidths=1, alpha=contour_alpha)
     if heatmap:
-        cs = axs.contourf(Z, cmap=cmap, extent=[-limit, limit, -limit, limit], aspect='equal', vmin=0, vmax=1, levels=levels_, alpha=contour_alpha)
+        cs = axs.contourf(Z, cmap=cmap, extent=[-limit, limit, -limit, limit], vmin=0, vmax=1, levels=levels_, alpha=contour_alpha)
         if colorbar:
             # Create colorbar on the inset axis (cax)
             cax = axs.inset_axes((1.05, 0, 0.08, 1.0))
