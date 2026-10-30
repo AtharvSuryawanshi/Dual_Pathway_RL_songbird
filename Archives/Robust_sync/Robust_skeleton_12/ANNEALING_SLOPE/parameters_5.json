@@ -1,0 +1,36 @@
+{
+  "params": {
+    "TRIALS": 1000,
+    "DAYS": 61,
+    "N_SYLL": 1,
+    "WEIGHT_JUMP": 0,
+    "JUMP_MID": 0.7,
+    "JUMP_SLOPE": 4,
+    "ANNEALING": 1,
+    "ANNEALING_SLOPE": 5,
+    "ANNEALING_MID": 2,
+    "HEBBIAN_LEARNING": 1,
+    "LOG_NORMAL": 1,
+    "balance_factor": 2,
+    "BG_influence": 1,
+    "REWARD_WINDOW": 5,
+    "BG_NOISE": 0.1,
+    "RA_NOISE": 0.01,
+    "N_DISTRACTORS": 10,
+    "TARGET_WIDTH": 0.3,
+    "LEARNING_RATE_RL": 0.1,
+    "LEARNING_RATE_HL": 2e-05,
+    "BG_SIG_SLOPE": 2.5,
+    "BG_sig_MID": 0,
+    "RA_SIG_SLOPE": 18,
+    "RA_sig_MID": 0,
+    "N_BG_CLUSTERS": 2
+  },
+  "const": {
+    "HVC_SIZE": 100,
+    "BG_SIZE": 50,
+    "RA_SIZE": 100,
+    "MC_SIZE": 2,
+    "N_RA_CLUSTERS": 2
+  }
+}

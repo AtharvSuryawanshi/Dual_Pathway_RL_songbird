@@ -1,0 +1,204 @@
+import numpy as np
+from scipy.interpolate import interp2d, RegularGridInterpolator
+import seaborn as sns
+from matplotlib.colors import LinearSegmentedColormap
+from scipy.ndimage import maximum_filter
+import pandas as pd
+
+def running_mean(x, N=5):
+        """ Returns the running average of an array. """
+        # rm = np.convolve(x, np.ones(N)/N, mode='valid')
+        # padded_rm = np.ones(np.shape(x)) * x # rm[-1]
+        # padded_rm[N//2:N//2+rm.size] = rm
+
+        x_series = pd.Series(x)
+        y1 = x_series.expanding().mean()[::2]
+        if len(x_series) % 2 != 0:  y1 = y1[:-1]
+        y2 = x_series[::-1].expanding().mean()[::2][::-1]
+        y3 = pd.concat([y1, y2], ignore_index=True)
+        rolling_mean = x_series.rolling(window=N, center=True).mean()
+        rolling_mean = rolling_mean.fillna(y3).to_numpy()
+
+        return rolling_mean
+
+def running_mean_dynamic(x, N_i=3, N_f=50, steepness=5.0):
+    """
+    Running mean with dynamically increasing window size.
+    Window sizes grow fast at the beginning and then slow down
+    (1 - exp(-ax)) shaped curve.
+
+    Parameters
+    ----------
+    x : array-like
+        Input array.
+    N_i : int
+        Initial window size at the start.
+    N_f : int
+        Final window size at the end.
+    steepness : float
+        Controls how quickly the window size approaches N_f.
+        Higher values -> faster growth at start, slower near end.
+
+    Returns
+    -------
+    smoothed : np.ndarray
+        Smoothed array of same length as x.
+    """
+    x = np.asarray(x)
+    n = len(x)
+    smoothed = np.zeros(n)
+    # Normalized x between 0 and 1
+    t = np.linspace(0, 1, n)
+    # Exponential-like growth curve
+    curve = 1 - np.exp(-steepness * t)
+    # Normalize to [0, 1]
+    curve /= curve[-1]
+    # Scale to window sizes
+    window_sizes = N_i + (N_f - N_i) * curve
+    window_sizes = window_sizes.astype(int)
+    for i in range(n):
+        N = window_sizes[i]
+        start = max(0, i - N//2)
+        end = min(n, i + N//2 + 1)
+        smoothed[i] = np.mean(x[start:end])
+    return smoothed
+
+def running_std(x, window=100):
+    """
+    Compute running standard deviation with a sliding window.
+    
+    Parameters
+    ----------
+    x : array-like
+        Input array.
+    window : int
+        Window size.
+    
+    Returns
+    -------
+    stds : np.ndarray
+        Running standard deviation (same length as x).
+    """
+    x = np.asarray(x)
+    n = len(x)
+    stds = np.zeros(n)
+    
+    for i in range(n):
+        start = max(0, i - window//2)
+        end = min(n, i + window//2 + 1)
+        stds[i] = np.std(x[start:end])
+    
+    return stds
+
+
+# Basic functions
+def gaussian(coordinates, height, mean, spread):
+    constant = 1 / (2 * spread**2)  # Pre-compute if spread is constant
+    x, y = coordinates[0], coordinates[1]
+    diff_x = x - mean[0]
+    diff_y = y - mean[1]
+    return height * np.exp(-constant * (diff_x**2 + diff_y**2))
+
+def new_sigmoid(x, m=0.0, a=0.0):
+    if m != 0.0:  # Check if m is not zero (avoid division by zero)
+        constant = -m * a
+    exp_term = np.exp(constant + (-m * x))
+    return (2 / (1 + exp_term)) - 1
+
+def sigmoid(x, m =0.0 , a=0.0 ):
+    """ Returns an output between 0 and 1 """
+    return 1 / (1 + np.exp(-1*(x-a)*m))
+
+def squash(x, p=3, a = 0):
+    return 0.5 + 0.5 * (x-a) * np.abs(x-a)**p
+
+def sym_lognormal_samples(minimum, maximum, size, mu = 0.01, sigma = 0.5):
+    """
+    This function generates samples from a combined (original + reflected) lognormal distribution.
+    Args:
+        mu (float): Mean of the underlying normal distribution.
+        sigma (float): Standard deviation of the underlying normal distribution.
+        size (int): Number of samples to generate.
+    Returns:
+        numpy.ndarray: Array of samples from the combined lognormal distribution.
+    """
+    if size == 0:
+        ValueError('Size cannot be zero')
+    # Generate lognormal samples with half in one dimension only
+    samples = np.random.lognormal(mu, sigma, size)
+    combined_samples = np.concatenate((samples, samples * -1))/4
+    # randomly remove samples such that size of combined_samples is equal to size
+    combined_samples = np.random.choice(combined_samples.reshape(-1), size, replace = False)
+    combined_samples = np.clip(combined_samples, minimum, maximum)
+    return combined_samples
+
+def lognormal_weight(size, mu = 0.01, sigma = 0.5):
+    '''returns lognormal weights'''
+    samples = np.random.lognormal(mu, sigma, size)/4
+    samples = np.clip(samples, 0, 1)
+    return samples
+
+def make_contour(Z, n=256):
+    Z = Z / Z.max()
+
+    # Transform exponentially
+    Z = np.power(1000, Z)
+    Z = Z / Z.max()
+
+    # Interpolate
+    x = np.linspace(0, 1., Z.shape[0])
+    y = np.linspace(0, .2, Z.shape[1])
+
+    x2 = np.linspace(0, 1., n)
+    y2 = np.linspace(0, .2, n)
+    
+    interpolating_function = RegularGridInterpolator((x, y), Z, method='cubic')
+    x2_grid, y2_grid = np.meshgrid(x2, y2)
+    points = np.array([x2_grid.flatten(), y2_grid.flatten()]).T
+    Z = interpolating_function(points).reshape(n, n)
+
+    Z = (Z - np.min(Z)) / (np.max(Z) - np.min(Z)) # type: ignore
+    Z = Z / Z.max()
+
+    targetZpos = np.argwhere(Z == 1)[0]
+    targetpos = np.zeros((2))
+    targetpos[0] = (targetZpos[1] / Z.shape[1]) * 2 - 1
+    targetpos[1] = (targetZpos[0] / Z.shape[0]) * 2 - 1
+    return Z, targetpos
+
+def find_peaks_2d(data, threshold=None):
+    """
+    Finds local maxima in a 2D array.
+    
+    Args:
+        data (np.ndarray): The 2D input array.
+        threshold (float): Minimum value to be considered a peak.
+        
+    Returns:
+        tuple: (rows, cols) indices of the detected peaks.
+    """
+    # 1. Apply a maximum filter. This replaces each element with 
+    # the maximum value in its 3x3 neighborhood.
+    local_max = maximum_filter(data, size=3, mode='constant')
+    
+    # 2. A point is a peak if it equals the local maximum
+    # and (optionally) is greater than the threshold.
+    peak_mask = (data == local_max)
+    
+    if threshold is not None:
+        peak_mask &= (data > threshold)
+        
+    # 3. Extract the coordinates
+    rows, cols = np.where(peak_mask)
+    heights = data[rows, cols]
+
+    return rows, cols, heights
+
+# Colors
+sns_cmap = sns.color_palette("colorblind")
+color_cortical = sns_cmap[0]
+color_bg = sns_cmap[1]
+color_motor = 'k'
+color_contour_bckg = LinearSegmentedColormap.from_list('change_this', ['white', 'white']) # 'Greys' 
+color_reward = 'k'
+if_contour = True

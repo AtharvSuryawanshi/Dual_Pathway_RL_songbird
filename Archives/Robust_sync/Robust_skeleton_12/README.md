@@ -1,0 +1,2 @@
+# Instructions
+This robustness skeleton is actually to compare how two different jumping algorithms fare against each other. First one is based of sum of weights over a day and the other is sum of RPEs over a day. 
