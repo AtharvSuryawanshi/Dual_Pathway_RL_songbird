@@ -535,16 +535,17 @@ def plot_scatter_traj_helper(axs, x_traj, y_traj,
         axs.scatter(x_traj[0], y_traj[0],
                     s=7, c=color_traj,
                     marker='s', zorder=500)#, label='Starting Point')
-        axs.scatter(x_traj[-1], y_traj[-1],
-                    s=7, c='white',
-                    marker='X', zorder=500)#, label='Ending Point')
         axs.scatter(x_traj[0], y_traj[0],
                     s=3, c='white',
                     marker='s', zorder=600, label=f'Initial position')
-        axs.scatter(x_traj[-1], y_traj[-1],
-                    s=3, c=color_traj,
-                    marker='x', zorder=600, label=f'Final position')
-
+        # axs.scatter(x_traj[-1], y_traj[-1],
+        #             s=7, c='white',
+        #             marker='X', zorder=500)#, label='Ending Point')
+        # axs.scatter(x_traj[-1], y_traj[-1],
+        #             s=3, c=color_traj,
+        #             marker='x', zorder=600, label=f'Final position')
+        axs.scatter(x_traj[-1], y_traj[-1], s=30, marker='X', c=color_traj,
+            edgecolors='white', linewidths=0.6, zorder=600, label='Final position')
     
     if plot_smooth_traj:
         xtraj_smooth = running_mean(np.array(x_traj), N = running_smooth)
